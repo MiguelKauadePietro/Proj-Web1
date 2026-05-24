@@ -1,32 +1,35 @@
 package br.ufscar.pescd.entity;
 
-import br.ufscar.pescd.entity.enums.Perfil;
+import br.ufscar.pescd.entity.enums.StatusAluno;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Usuario {
+public class Aluno {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nomeCompleto;
+    @Column(unique = true)
+    private String ra;
 
     @Column(unique = true)
     private String email;
 
-    @Column(unique = true)
-    private String username;
-
-    private String senha;
+    private String nome;
 
     @Enumerated(EnumType.STRING)
-    private Perfil perfil;
+    private StatusAluno status;
+
+    @ManyToMany(mappedBy = "alunos")
+    private List<Oferta> ofertas;
 
 }
