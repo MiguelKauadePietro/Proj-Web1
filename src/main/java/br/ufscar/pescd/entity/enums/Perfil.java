@@ -4,7 +4,6 @@ public enum Perfil {
 
     ADMINISTRADOR,
     SECRETARIO,
-    ALUNO,
     PROFESSOR
 
 }

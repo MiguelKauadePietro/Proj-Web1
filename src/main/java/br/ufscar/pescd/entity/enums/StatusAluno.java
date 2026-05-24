@@ -1,0 +1,16 @@
+package br.ufscar.pescd.entity.enums;
+
+public enum StatusAluno {
+
+    MATRICULADO,
+    PLANO_ENVIADO,
+    PLANO_APROVADO,
+    PLANO_REPROVADO,
+    RELATORIO_ENVIADO,
+    RELATORIO_APROVADO,
+    RELATORIO_REPROVADO,
+    DISPENSA_SOLICITADA,
+    DISPENSADO,
+    CONCLUIDO
+
+}
