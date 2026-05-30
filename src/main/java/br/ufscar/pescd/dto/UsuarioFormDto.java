@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Data
 public class UsuarioFormDto {
@@ -25,7 +26,11 @@ public class UsuarioFormDto {
     @NotNull
     private Perfil perfil;
 
-    public static UsuarioFormDto de(Usuario usuario) {
+    public Usuario toUsuario(PasswordEncoder encoder) {
+        return new Usuario(null, nomeCompleto, email, username, encoder.encode(senha), perfil, true);
+    }
+
+    public static UsuarioFormDto toDto(Usuario usuario) {
         UsuarioFormDto dto = new UsuarioFormDto();
         dto.setNomeCompleto(usuario.getNomeCompleto());
         dto.setEmail(usuario.getEmail());

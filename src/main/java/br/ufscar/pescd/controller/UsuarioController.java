@@ -62,7 +62,7 @@ public class UsuarioController {
     @GetMapping("/{id}/editar")
     public String editarForm(@PathVariable Long id, Model model) {
         Usuario usuario = usuarioService.buscarPorId(id);
-        model.addAttribute("usuarioForm", UsuarioFormDto.de(usuario));
+        model.addAttribute("usuarioForm", UsuarioFormDto.toDto(usuario));
         model.addAttribute("usuarioId", id);
         model.addAttribute("perfis", List.of(Perfil.ADMINISTRADOR, Perfil.SECRETARIO, Perfil.PROFESSOR));
         return "admin/usuarios/form";

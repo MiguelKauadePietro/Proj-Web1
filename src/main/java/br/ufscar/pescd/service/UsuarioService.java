@@ -3,9 +3,12 @@ package br.ufscar.pescd.service;
 import br.ufscar.pescd.dto.UsuarioFormDto;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
-import br.ufscar.pescd.exception.PescdException;
+import br.ufscar.pescd.exception.DesativarProprioUsuarioException;
+import br.ufscar.pescd.exception.EmailJaCadastradoException;
+import br.ufscar.pescd.exception.UsuarioNaoEncontradoException;
+import br.ufscar.pescd.exception.UsernameJaCadastradoException;
+
 import br.ufscar.pescd.repository.UsuarioRepositorio;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -29,26 +32,19 @@ public class UsuarioService {
 
     public Usuario buscarPorId(Long id) {
         return usuarioRepositorio.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado: " + id));
+                .orElseThrow(UsuarioNaoEncontradoException::new);
     }
 
     @Transactional
     public Usuario criar(UsuarioFormDto dto) {
         if (usuarioRepositorio.existsByEmail(dto.getEmail())) {
-            throw new PescdException("E-mail já cadastrado: " + dto.getEmail());
+            throw new EmailJaCadastradoException();
         }
         if (usuarioRepositorio.existsByUsername(dto.getUsername())) {
-            throw new PescdException("Username já cadastrado: " + dto.getUsername());
+            throw new UsernameJaCadastradoException();
         }
 
-        Usuario usuario = new Usuario();
-        usuario.setNomeCompleto(dto.getNomeCompleto());
-        usuario.setEmail(dto.getEmail());
-        usuario.setUsername(dto.getUsername());
-        usuario.setSenha(passwordEncoder.encode(dto.getSenha()));
-        usuario.setPerfil(dto.getPerfil());
-        usuario.setAtivo(true);
-        return usuarioRepositorio.save(usuario);
+        return usuarioRepositorio.save(dto.toUsuario(passwordEncoder));
     }
 
     @Transactional
@@ -56,7 +52,7 @@ public class UsuarioService {
         Usuario usuario = buscarPorId(id);
 
         if (usuarioRepositorio.existsByEmailAndIdNot(dto.getEmail(), id)) {
-            throw new PescdException("E-mail já cadastrado: " + dto.getEmail());
+            throw new EmailJaCadastradoException();
         }
 
         usuario.setNomeCompleto(dto.getNomeCompleto());
@@ -74,7 +70,7 @@ public class UsuarioService {
     public void desativar(Long id, String usernameLogado) {
         Usuario usuario = buscarPorId(id);
         if (usuario.getUsername().equals(usernameLogado)) {
-            throw new PescdException("Você não pode desativar seu próprio usuário.");
+            throw new DesativarProprioUsuarioException();
         }
         usuario.setAtivo(false);
         usuarioRepositorio.save(usuario);
