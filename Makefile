@@ -12,3 +12,6 @@ test:
 
 clean:
 	mvn clean
+
+lint:
+	mvn checkstyle:check
