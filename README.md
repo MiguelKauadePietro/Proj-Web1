@@ -15,3 +15,4 @@ Sistema web para automação do workflow de créditos de estágio para alunos de
 | 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona login, crud de usuarios e listagem de ofertas |
 | 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona README e documento de requisitos |
 | 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona linter checkstyle |
+| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona favicon |

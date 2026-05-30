@@ -46,7 +46,7 @@ public class WebSecurityConfiguration {
         http
             .authenticationProvider(authenticationProvider())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()
+                .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.png").permitAll()
                 .requestMatchers("/h2-console/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
                 .requestMatchers("/secretario/**").hasRole("SECRETARIO")
