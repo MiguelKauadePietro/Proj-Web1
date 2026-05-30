@@ -1,13 +1,12 @@
 package br.ufscar.pescd.repository;
 
+import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.RelatorioEstagio;
-import br.ufscar.pescd.entity.enums.StatusAluno;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
+import java.util.Optional;
 
 public interface RelatorioEstagioRepositorio extends JpaRepository<RelatorioEstagio, Long> {
 
-    List<RelatorioEstagio> findByParecer(StatusAluno parecer);
-
+    Optional<RelatorioEstagio> findByAlunoOferta(AlunoOferta alunoOferta);
 }

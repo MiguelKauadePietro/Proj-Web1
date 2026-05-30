@@ -1,6 +1,6 @@
 package br.ufscar.pescd.entity;
 
-import br.ufscar.pescd.entity.enums.Nota;
+import br.ufscar.pescd.entity.enums.StatusAluno;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -10,47 +10,40 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Entity
-@Table(name = "documentacao_docencia")
+@Table(name = "aluno_oferta")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentacaoDocencia {
+public class AlunoOferta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nomeInstituicao;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "aluno_id")
+    private Usuario aluno;
 
-    private String nomeDisciplina;
-
-    private String cursoDisciplina;
-
-    private Integer cargaHoraria;
-
-    private String arquivoPath;
-
-    private LocalDateTime enviadaEm;
-
-    @Column(columnDefinition = "TEXT")
-    private String parecer;
-
-    private Double frequencia;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "oferta_id")
+    private Oferta oferta;
 
     @Enumerated(EnumType.STRING)
-    private Nota nota;
+    @Column(nullable = false)
+    private StatusAluno status = StatusAluno.NAO_ENVIADO;
 
-    private LocalDateTime analisadaEm;
+    @OneToOne
+    @JoinColumn(name = "plano_id")
+    private PlanoTrabalho plano;
 
-    @ManyToOne
-    @JoinColumn(name = "analisada_por_id")
-    private Usuario analisadaPor;
+    @OneToOne
+    @JoinColumn(name = "documentacao_id")
+    private DocumentacaoDocencia documentacao;
 }

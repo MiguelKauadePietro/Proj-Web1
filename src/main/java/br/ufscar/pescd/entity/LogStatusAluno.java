@@ -1,6 +1,6 @@
 package br.ufscar.pescd.entity;
 
-import br.ufscar.pescd.entity.enums.Nota;
+import br.ufscar.pescd.entity.enums.StatusAluno;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,39 +18,33 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "documentacao_docencia")
+@Table(name = "log_status_aluno")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class DocumentacaoDocencia {
+public class LogStatusAluno {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nomeInstituicao;
-
-    private String nomeDisciplina;
-
-    private String cursoDisciplina;
-
-    private Integer cargaHoraria;
-
-    private String arquivoPath;
-
-    private LocalDateTime enviadaEm;
-
-    @Column(columnDefinition = "TEXT")
-    private String parecer;
-
-    private Double frequencia;
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "aluno_oferta_id")
+    private AlunoOferta alunoOferta;
 
     @Enumerated(EnumType.STRING)
-    private Nota nota;
+    private StatusAluno statusAnterior;
 
-    private LocalDateTime analisadaEm;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusAluno statusNovo;
+
+    private LocalDateTime alteradoEm;
 
     @ManyToOne
-    @JoinColumn(name = "analisada_por_id")
-    private Usuario analisadaPor;
+    @JoinColumn(name = "alterado_por_id")
+    private Usuario alteradoPor;
+
+    @Column(columnDefinition = "TEXT")
+    private String observacao;
 }
