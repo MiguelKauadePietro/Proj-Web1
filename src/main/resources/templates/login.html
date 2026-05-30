@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{login.title})}"></head>
+<body class="bg-light">
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container">
+    <div class="row justify-content-center mt-5 pt-4">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-sm">
+                <div class="card-body p-4">
+                    <h4 class="card-title text-center mb-4" th:text="#{login.title}">Acesso ao Sistema</h4>
+
+                    <div th:if="${param.error}" class="alert alert-danger" th:text="#{login.error}">
+                        Usuário ou senha inválidos.
+                    </div>
+                    <div th:if="${param.logout}" class="alert alert-info" th:text="#{login.logout}">
+                        Você saiu do sistema.
+                    </div>
+
+                    <form th:action="@{/login}" method="post">
+                        <div class="mb-3">
+                            <label for="username" class="form-label" th:text="#{login.username}">Usuário</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   autofocus required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="senha" class="form-label" th:text="#{login.password}">Senha</label>
+                            <input type="password" class="form-control" id="senha" name="senha" required>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" th:text="#{login.submit}">Entrar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

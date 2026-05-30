@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{user.title})}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div th:replace="~{layout/base :: flash}"></div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 th:text="#{user.title}">Gerenciamento de Usuários</h2>
+        <a th:href="@{/admin/usuarios/novo}" class="btn btn-primary" th:text="#{user.new}">Novo Usuário</a>
+    </div>
+
+    <table class="table table-striped table-hover">
+        <thead class="table-primary">
+        <tr>
+            <th th:text="#{user.name}">Nome</th>
+            <th th:text="#{user.email}">E-mail</th>
+            <th th:text="#{user.username}">Usuário</th>
+            <th th:text="#{user.profile}">Perfil</th>
+            <th th:text="#{user.active}">Ativo</th>
+            <th th:text="#{user.actions}">Ações</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="usuario : ${usuarios}">
+            <td th:text="${usuario.nomeCompleto}"></td>
+            <td th:text="${usuario.email}"></td>
+            <td th:text="${usuario.username}"></td>
+            <td th:text="#{|perfil.${usuario.perfil}|}"></td>
+            <td>
+                <span th:if="${usuario.ativo}" class="badge bg-success">Sim</span>
+                <span th:unless="${usuario.ativo}" class="badge bg-secondary">Não</span>
+            </td>
+            <td>
+                <a th:href="@{/admin/usuarios/{id}/editar(id=${usuario.id})}"
+                   class="btn btn-sm btn-outline-primary me-1" th:text="#{user.edit.action}">Editar</a>
+                <form th:action="@{/admin/usuarios/{id}/desativar(id=${usuario.id})}"
+                      method="post" class="d-inline"
+                      th:if="${usuario.ativo and usuario.username != #authentication.name}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                            th:text="#{user.deactivate}"
+                            onclick="return confirm('Desativar este usuário?')">Desativar</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

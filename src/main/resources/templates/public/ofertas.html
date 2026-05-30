@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{offer.title})}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+    <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
+    <hr>
+
+    <div th:if="${#maps.isEmpty(ofertasComContagem)}" class="alert alert-info" th:text="#{offer.none}">
+        Nenhuma oferta disponível.
+    </div>
+
+    <table th:unless="${#maps.isEmpty(ofertasComContagem)}" class="table table-striped table-hover">
+        <thead class="table-primary">
+        <tr>
+            <th th:text="#{offer.name}">Nome</th>
+            <th th:text="#{offer.semester}">Semestre</th>
+            <th th:text="#{offer.start}">Início</th>
+            <th th:text="#{offer.end}">Fim</th>
+            <th th:text="#{offer.professor}">Professor Responsável</th>
+            <th th:text="#{offer.students}">Alunos</th>
+            <th th:text="#{offer.status}">Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${ofertasComContagem}">
+            <td th:text="${entry.key.nome}"></td>
+            <td th:text="${entry.key.semestre}"></td>
+            <td th:text="${#temporals.format(entry.key.dataInicio, 'dd/MM/yyyy')}"></td>
+            <td th:text="${#temporals.format(entry.key.dataFim, 'dd/MM/yyyy')}"></td>
+            <td th:text="${entry.key.professorResponsavel?.nomeCompleto}"></td>
+            <td th:text="${entry.value}"></td>
+            <td>
+                <span th:text="#{|status.${entry.key.status}|}"
+                      th:classappend="${entry.key.status.name() == 'EM_ANDAMENTO'} ? 'badge bg-success' :
+                                     (${entry.key.status.name() == 'EM_ATRASO'} ? 'badge bg-warning text-dark' :
+                                     (${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'} ? 'badge bg-info text-dark' :
+                                      'badge bg-secondary'))">
+                </span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>
