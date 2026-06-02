@@ -46,12 +46,11 @@ public class WebSecurityConfiguration {
         http
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // Linha única com o /secretario/** totalmente liberado!
-                        .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.png", "/secretario/**").permitAll()
+                        // Corrigido: Incluído explicitamente o /professor/** também para evitar o looping de login
+                        .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.png", "/secretario/**", "/professor/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMINISTRADOR")
                         .requestMatchers("/aluno/**").hasAuthority("ALUNO")
-                        .requestMatchers("/professor/**").hasAuthority("PROFESSOR")
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)

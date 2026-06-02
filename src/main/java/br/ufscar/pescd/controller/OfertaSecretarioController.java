@@ -26,7 +26,6 @@ public class OfertaSecretarioController {
     private final UsuarioRepositorio usuarioRepositorio;
 
 
-    // MÉTODOS DA USER STORY S.01 (Criar Oferta)
 
     @GetMapping("/nova")
     public String exibirFormulario(Model model) {
@@ -45,8 +44,6 @@ public class OfertaSecretarioController {
         }
     }
 
-    // MÉTODOS DA USER STORY S.02 (Gerenciar Alunos)
-
     @GetMapping("/{id}/alunos")
     public String gerenciarAlunos(@PathVariable Long id, Model model) {
         Oferta oferta = ofertaService.buscarPorId(id);
@@ -57,7 +54,6 @@ public class OfertaSecretarioController {
         return "secretario/alunos";
     }
 
-    // 2. CRUD: Adicionar aluno manualmente por username/e-mail
     @PostMapping("/{id}/alunos/adicionar")
     public String adicionarAlunoManual(@PathVariable Long id, @RequestParam String username, RedirectAttributes redirectAttributes) {
         try {
@@ -72,7 +68,6 @@ public class OfertaSecretarioController {
         return "redirect:/secretario/ofertas/" + id + "/alunos";
     }
 
-    // 3. Upload de CSV: Processa o arquivo enviado
     @PostMapping("/{id}/alunos/upload-csv")
     public String uploadCSV(@PathVariable Long id, @RequestParam("arquivo") MultipartFile arquivo, RedirectAttributes redirectAttributes) {
         if (arquivo.isEmpty()) {
@@ -83,13 +78,13 @@ public class OfertaSecretarioController {
         try (BufferedReader fileReader = new BufferedReader(new InputStreamReader(arquivo.getInputStream(), StandardCharsets.UTF_8))) {
             String linha;
             int contagem = 0;
-
             boolean primeiraLinha = true;
+
             while ((linha = fileReader.readLine()) != null) {
                 if (primeiraLinha) {
                     primeiraLinha = false;
                     if(linha.contains("@") || !linha.equalsIgnoreCase("username")) {
-                        // Se não for cabeçalho, processa direto
+                        // Processa direto se não for cabeçalho
                     } else {
                         continue;
                     }
@@ -112,7 +107,7 @@ public class OfertaSecretarioController {
         return "redirect:/secretario/ofertas/" + id + "/alunos";
     }
 
-    // 4. CRUD: Remover aluno da oferta
+
     @GetMapping("/{ofertaId}/alunos/remover/{alunoOfertaId}")
     public String removerAluno(@PathVariable Long ofertaId, @PathVariable Long alunoOfertaId, RedirectAttributes redirectAttributes) {
         try {
@@ -122,5 +117,19 @@ public class OfertaSecretarioController {
             redirectAttributes.addFlashAttribute("mensagemErro", "Erro ao remover aluno.");
         }
         return "redirect:/secretario/ofertas/" + ofertaId + "/alunos";
+    }
+
+    @GetMapping("/{id}/homologar")
+    public String homologarEncerramento(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        try {
+            Usuario secretarioFake = usuarioRepositorio.findByUsername("secretario")
+                    .orElseGet(() -> usuarioRepositorio.findAll().stream().findFirst().orElse(null));
+
+            ofertaService.homologarEncerramento(id, secretarioFake);
+            redirectAttributes.addFlashAttribute("mensagemSucesso", "Oferta homologada e encerrada com sucesso!");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", "Erro ao homologar encerramento: " + e.getMessage());
+        }
+        return "redirect:/ofertas";
     }
 }

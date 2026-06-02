@@ -48,33 +48,26 @@ public class OfertaService {
     }
 
 
-    // NOVOS MÉTODOS PARA A USER STORY S.02
 
-
-    // Buscar uma oferta pelo ID
     public Oferta buscarPorId(Long id) {
         return ofertaRepositorio.findById(id)
                 .orElseThrow(() -> new RuntimeException("Oferta não encontrada com o ID: " + id));
     }
 
-    // Buscar a lista de alunos matriculados em uma oferta específica
     public List<AlunoOferta> buscarAlunosPorOferta(Long ofertaId) {
         Oferta oferta = buscarPorId(ofertaId);
         return alunoOfertaRepositorio.findByOferta(oferta);
     }
 
-    // Matricular um aluno na oferta (Evitando duplicados)
     @Transactional
     public void matricularAlunoNaOferta(Long ofertaId, Usuario aluno) {
         Oferta oferta = buscarPorId(ofertaId);
 
-        // Verifica se o aluno já está matriculado nesta oferta para não duplicar
         boolean jaMatriculado = alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno);
         if (jaMatriculado) {
             throw new IllegalArgumentException("Este aluno já está matriculado nesta oferta.");
         }
 
-        // Cria o registro de vínculo
         AlunoOferta alunoOferta = new AlunoOferta();
         alunoOferta.setOferta(oferta);
         alunoOferta.setAluno(aluno);
@@ -83,12 +76,46 @@ public class OfertaService {
         alunoOfertaRepositorio.save(alunoOferta);
     }
 
-    // Remover a matrícula de um aluno da oferta
     @Transactional
     public void removerAlunoDaOferta(Long alunoOfertaId) {
         if (!alunoOfertaRepositorio.existsById(alunoOfertaId)) {
             throw new RuntimeException("Registro de matrícula não encontrado.");
         }
         alunoOfertaRepositorio.deleteById(alunoOfertaId);
+    }
+
+    @Transactional
+    public void solicitarEncerramento(Long id, String licoes, String instrucoes) {
+        Oferta oferta = buscarPorId(id);
+
+        if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO) {
+            throw new IllegalStateException("Apenas ofertas EM_ANDAMENTO podem solicitar encerramento.");
+        }
+
+        if (licoes == null || licoes.trim().isEmpty() || instrucoes == null || instrucoes.trim().isEmpty()) {
+            throw new IllegalArgumentException("As lições aprendidas e instruções de encerramento são obrigatórias.");
+        }
+
+        oferta.setLicoesAprendidas(licoes);
+        oferta.setInstrucaoEncerramento(instrucoes);
+        oferta.setStatus(StatusOferta.AGUARDANDO_ENCERRAMENTO);
+
+        ofertaRepositorio.save(oferta);
+    }
+
+
+    @Transactional
+    public void homologarEncerramento(Long id, Usuario secretario) {
+        Oferta oferta = buscarPorId(id);
+
+        if (oferta.getStatus() != StatusOferta.AGUARDANDO_ENCERRAMENTO) {
+            throw new IllegalStateException("Apenas ofertas em estado AGUARDANDO_ENCERRAMENTO podem ser finalizadas.");
+        }
+
+        oferta.setStatus(StatusOferta.CONCLUIDA);
+        oferta.setEncerradoPor(secretario);
+        oferta.setEncerradoEm(LocalDateTime.now());
+
+        ofertaRepositorio.save(oferta);
     }
 }
