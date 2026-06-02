@@ -17,7 +17,7 @@ Sistema web para automação do workflow de créditos de estágio para alunos de
 | 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona linter checkstyle |
 | 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona favicon |
 
-| 01/06/2026 | Francini Stefany Assandre | PR.03: Criação do controller e tela de solicitação de encerramento da oferta com relatório de lições aprendidas. |
-| 01/06/2026 | Francini Stefany Assandre | S.04: Implementação da lógica de homologação de encerramento no backend e atualização de status no banco de dados. |
-| 01/06/2026 | Francini Stefany Assandre | Integração: Ajuste no AlunoOfertaRepositorio e correção de rotas/loopholes no Spring Security. |
-| 01/06/2026 | Francini Stefany Assandre | Frontend: Atualização da listagem dinâmica de ofertas com badges coloridos de status e botões condicionais de ações. |
+| 01/06/2026 | Francini Stefany Assandre | PR.03: Tela e controle de solicitação de encerramento da oferta. |
+| 01/06/2026 | Francini Stefany Assandre | S.04: Lógica de homologação do encerramento e atualização do status. |
+| 01/06/2026 | Francini Stefany Assandre | Integração: Ajustes no AlunoOfertaRepositorio e regras do Spring Security. |
+| 01/06/2026 | Francini Stefany Assandre | Frontend: Estilização dos badges de status e botões condicionais em ofertas.html. |
