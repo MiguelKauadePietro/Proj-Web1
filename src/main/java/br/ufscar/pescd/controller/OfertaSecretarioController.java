@@ -84,7 +84,6 @@ public class OfertaSecretarioController {
                 if (primeiraLinha) {
                     primeiraLinha = false;
                     if(linha.contains("@") || !linha.equalsIgnoreCase("username")) {
-                        // Processa direto se não for cabeçalho
                     } else {
                         continue;
                     }
