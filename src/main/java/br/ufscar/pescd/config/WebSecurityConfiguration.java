@@ -46,7 +46,6 @@ public class WebSecurityConfiguration {
         http
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
-                        // Corrigido: Incluído explicitamente o /professor/** também para evitar o looping de login
                         .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.png", "/secretario/**", "/professor/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
                         .requestMatchers("/admin/**").hasAuthority("ADMINISTRADOR")

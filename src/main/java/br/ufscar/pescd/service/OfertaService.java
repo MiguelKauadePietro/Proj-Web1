@@ -71,7 +71,7 @@ public class OfertaService {
         AlunoOferta alunoOferta = new AlunoOferta();
         alunoOferta.setOferta(oferta);
         alunoOferta.setAluno(aluno);
-        alunoOferta.setStatus(StatusAluno.NAO_ENVIADO); // Status inicial exigido pelo modelo
+        alunoOferta.setStatus(StatusAluno.NAO_ENVIADO);
 
         alunoOfertaRepositorio.save(alunoOferta);
     }
