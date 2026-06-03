@@ -9,6 +9,13 @@
     <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
     <hr>
 
+    <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${mensagemSucesso}"></span>
+    </div>
+    <div th:if="${mensagemErro}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${mensagemErro}"></span>
+    </div>
+
     <div th:if="${#maps.isEmpty(ofertasComContagem)}" class="alert alert-info" th:text="#{offer.none}">
         Nenhuma oferta disponível.
     </div>
@@ -23,6 +30,7 @@
             <th th:text="#{offer.professor}">Professor Responsável</th>
             <th th:text="#{offer.students}">Alunos</th>
             <th th:text="#{offer.status}">Status</th>
+            <th>Ações</th>
         </tr>
         </thead>
         <tbody>
@@ -31,7 +39,7 @@
             <td th:text="${entry.key.semestre}"></td>
             <td th:text="${#temporals.format(entry.key.dataInicio, 'dd/MM/yyyy')}"></td>
             <td th:text="${#temporals.format(entry.key.dataFim, 'dd/MM/yyyy')}"></td>
-            <td th:text="${entry.key.professorResponsavel?.nomeCompleto}"></td>
+            <td th:text="${entry.key.professorResponsavel?.username}"></td>
             <td th:text="${entry.value}"></td>
             <td>
                 <span th:text="#{|status.${entry.key.status}|}"
@@ -40,6 +48,24 @@
                                      (${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'} ? 'badge bg-info text-dark' :
                                       'badge bg-secondary'))">
                 </span>
+            </td>
+            <td>
+                <a th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}" class="btn btn-sm btn-primary">
+                    Gerenciar Alunos
+                </a>
+
+                <a th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
+                   th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
+                   class="btn btn-sm btn-warning ms-1">
+                    Solicitar Encerramento
+                </a>
+
+                <a th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
+                   th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
+                   class="btn btn-sm btn-success ms-1"
+                   onclick="return confirm('Deseja realmente homologar e finalizar esta oferta definitivamente?');">
+                    Homologar Encerramento
+                </a>
             </td>
         </tr>
         </tbody>
