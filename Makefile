@@ -1,5 +1,5 @@
-JAVA_HOME := $(HOME)/.sdkman/candidates/java/21.0.8-tem
-export JAVA_HOME
+export JAVA_HOME := /usr/lib/jvm/java-21-openjdk-amd64
+export PATH := $(JAVA_HOME)/bin:$(PATH)
 
 run:
 	mvn spring-boot:run

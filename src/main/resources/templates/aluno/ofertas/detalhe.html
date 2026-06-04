@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{student.offer.details.title})}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 th:text="${alunoOferta.oferta.nome}">Oferta</h2>
+            <p class="text-muted mb-0" th:text="#{student.offer.details.subtitle}">
+                Dados da sua inscricao e historico de status.
+            </p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/aluno/ofertas}" th:text="#{student.offer.back}">
+            Voltar
+        </a>
+    </div>
+
+    <div th:if="${mensagemSucesso}" class="alert alert-success" th:text="${mensagemSucesso}"></div>
+    <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
+
+    <div class="card mb-4">
+        <div class="card-header" th:text="#{student.offer.data}">Dados da Oferta</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <strong th:text="#{offer.semester}">Semestre</strong>
+                    <div th:text="${alunoOferta.oferta.semestre}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{offer.professor}">Professor Responsável</strong>
+                    <div th:text="${alunoOferta.oferta.professorResponsavel != null ? alunoOferta.oferta.professorResponsavel.nomeCompleto : '-'}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{offer.start}">Início</strong>
+                    <div th:text="${alunoOferta.oferta.dataInicio != null ? #temporals.format(alunoOferta.oferta.dataInicio, 'dd/MM/yyyy') : '-'}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{offer.end}">Fim</strong>
+                    <div th:text="${alunoOferta.oferta.dataFim != null ? #temporals.format(alunoOferta.oferta.dataFim, 'dd/MM/yyyy') : '-'}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{offer.status}">Status da Oferta</strong>
+                    <div th:text="#{|status.${alunoOferta.oferta.status}|}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{student.offer.studentStatus}">Status do Aluno</strong>
+                    <div th:text="#{|statusAluno.${alunoOferta.status}|}"></div>
+                </div>
+            </div>
+
+            <div class="mt-4 d-flex gap-2"
+                 th:if="${alunoOferta.oferta.status.name() == 'EM_ANDAMENTO' and alunoOferta.status.name() == 'NAO_ENVIADO'}">
+                <a class="btn btn-primary"
+                   th:href="@{/aluno/ofertas/{id}/plano(id=${alunoOferta.id})}"
+                   th:text="#{student.plan.action}">
+                    Enviar Plano de Trabalho
+                </a>
+                <a class="btn btn-outline-primary"
+                   th:href="@{/aluno/ofertas/{id}/documentacao(id=${alunoOferta.id})}"
+                   th:text="#{student.documentation.action}">
+                    Enviar Documentação
+                </a>
+            </div>
+
+            <div class="mt-4"
+                 th:if="${alunoOferta.oferta.status.name() == 'EM_ANDAMENTO' and alunoOferta.status.name() == 'PLANO_APROVADO'}">
+                <a class="btn btn-success"
+                   th:href="@{/aluno/ofertas/{id}/relatorio(id=${alunoOferta.id})}"
+                   th:text="#{student.report.action}">
+                    Enviar Relatório Final
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header" th:text="#{student.offer.history.title}">Histórico de Status</div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(historicoStatus)}" class="p-3 text-muted" th:text="#{student.offer.history.empty}">
+                Nenhuma mudanca de status registrada ate o momento.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(historicoStatus)}" class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                    <tr>
+                        <th th:text="#{student.offer.history.changedAt}">Data/Hora</th>
+                        <th th:text="#{student.offer.history.previousStatus}">Status Anterior</th>
+                        <th th:text="#{student.offer.history.newStatus}">Novo Status</th>
+                        <th th:text="#{student.offer.history.changedBy}">Responsável</th>
+                        <th th:text="#{student.offer.history.note}">Observação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${historicoStatus}">
+                        <td th:text="${log.alteradoEm != null ? #temporals.format(log.alteradoEm, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                        <td th:text="${log.statusAnterior != null ? #messages.msgOrNull('statusAluno.' + log.statusAnterior.name()) : '-'}"></td>
+                        <td th:text="${#messages.msgOrNull('statusAluno.' + log.statusNovo.name())}"></td>
+                        <td th:text="${log.alteradoPor != null ? log.alteradoPor.nomeCompleto : '-'}"></td>
+                        <td th:text="${log.observacao != null && !log.observacao.isBlank() ? log.observacao : '-'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

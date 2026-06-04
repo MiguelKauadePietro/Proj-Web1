@@ -47,9 +47,8 @@ public class WebSecurityConfiguration {
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/", "/ofertas", "/login/**", "/css/**", "/js/**", "/images/**", "/webjars/**", "/favicon.png", "/secretario/**", "/professor/**").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/admin/**").hasAuthority("ADMINISTRADOR")
-                        .requestMatchers("/aluno/**").hasAuthority("ALUNO")
+                        .requestMatchers("/admin/**").hasRole("ADMINISTRADOR")
+                        .requestMatchers("/aluno/**").hasRole("ALUNO")
                         .anyRequest().authenticated()
                 )
                 .csrf(AbstractHttpConfigurer::disable)
@@ -63,9 +62,6 @@ public class WebSecurityConfiguration {
                 .logout(logout -> logout
                         .logoutSuccessUrl("/login?logout")
                         .permitAll()
-                )
-                .headers(headers -> headers
-                        .frameOptions(frame -> frame.sameOrigin())
                 );
 
         return http.build();

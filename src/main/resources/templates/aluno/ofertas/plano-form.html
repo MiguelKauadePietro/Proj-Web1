@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{student.plan.title})}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 th:text="#{student.plan.title}">Enviar Plano de Trabalho</h2>
+            <p class="text-muted mb-0" th:text="${alunoOferta.oferta.nome}">Oferta</p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/aluno/ofertas/{id}(id=${alunoOferta.id})}" th:text="#{student.offer.back}">
+            Voltar
+        </a>
+    </div>
+
+    <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/aluno/ofertas/{id}/plano(id=${alunoOferta.id})}" th:object="${planoForm}" method="post" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="codigoDisciplina" class="form-label" th:text="#{student.plan.codigoDisciplina}">Código da Disciplina</label>
+                        <input id="codigoDisciplina" type="text" class="form-control" th:field="*{codigoDisciplina}">
+                        <div class="text-danger small" th:if="${#fields.hasErrors('codigoDisciplina')}" th:errors="*{codigoDisciplina}"></div>
+                    </div>
+
+                    <div class="col-md-8">
+                        <label for="nomeDisciplina" class="form-label" th:text="#{student.plan.nomeDisciplina}">Nome da Disciplina</label>
+                        <input id="nomeDisciplina" type="text" class="form-control" th:field="*{nomeDisciplina}">
+                        <div class="text-danger small" th:if="${#fields.hasErrors('nomeDisciplina')}" th:errors="*{nomeDisciplina}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="cursoDisciplina" class="form-label" th:text="#{student.plan.cursoDisciplina}">Curso da Disciplina</label>
+                        <input id="cursoDisciplina" type="text" class="form-control" th:field="*{cursoDisciplina}">
+                        <div class="text-danger small" th:if="${#fields.hasErrors('cursoDisciplina')}" th:errors="*{cursoDisciplina}"></div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="professorSupervisorId" class="form-label" th:text="#{student.plan.professorSupervisor}">Professor Supervisor</label>
+                        <select id="professorSupervisorId" class="form-select" th:field="*{professorSupervisorId}">
+                            <option value="" th:text="#{student.plan.professorSupervisor.placeholder}">Selecione</option>
+                            <option th:each="professor : ${professores}"
+                                    th:value="${professor.id}"
+                                    th:text="${professor.nomeCompleto}">
+                            </option>
+                        </select>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('professorSupervisorId')}" th:errors="*{professorSupervisorId}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="arquivo" class="form-label" th:text="#{student.plan.arquivo}">Arquivo PDF</label>
+                        <input id="arquivo" type="file" class="form-control" th:field="*{arquivo}" accept="application/pdf,.pdf">
+                        <div class="form-text" th:text="#{student.plan.arquivo.hint}">Envie um PDF com no máximo 5MB.</div>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('arquivo')}" th:errors="*{arquivo}"></div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" th:text="#{student.plan.submit}">Enviar Plano</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/aluno/ofertas/{id}(id=${alunoOferta.id})}" th:text="#{user.cancel}">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

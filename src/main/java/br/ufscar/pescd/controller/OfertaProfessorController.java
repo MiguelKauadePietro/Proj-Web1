@@ -15,6 +15,11 @@ public class OfertaProfessorController {
 
     private final OfertaService ofertaService;
 
+    @GetMapping
+    public String listarOfertasProfessor() {
+        return "redirect:/ofertas";
+    }
+
     @GetMapping("/{id}/encerrar")
     public String exibirFormularioEncerramento(@PathVariable Long id, Model model) {
         Oferta oferta = ofertaService.buscarPorId(id);

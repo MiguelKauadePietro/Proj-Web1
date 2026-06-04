@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head(#{student.report.title})}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2 th:text="#{student.report.title}">Enviar Relatório Final</h2>
+            <p class="text-muted mb-0" th:text="${alunoOferta.oferta.nome}">Oferta</p>
+        </div>
+        <a class="btn btn-outline-secondary" th:href="@{/aluno/ofertas/{id}(id=${alunoOferta.id})}" th:text="#{student.offer.back}">
+            Voltar
+        </a>
+    </div>
+
+    <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
+
+    <div class="card mb-4">
+        <div class="card-header" th:text="#{student.offer.data}">Dados da Oferta</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <strong th:text="#{offer.semester}">Semestre</strong>
+                    <div th:text="${alunoOferta.oferta.semestre}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{offer.professor}">Professor Responsável</strong>
+                    <div th:text="${alunoOferta.oferta.professorResponsavel != null ? alunoOferta.oferta.professorResponsavel.nomeCompleto : '-'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{offer.start}">Início</strong>
+                    <div th:text="${alunoOferta.oferta.dataInicio != null ? #temporals.format(alunoOferta.oferta.dataInicio, 'dd/MM/yyyy') : '-'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{offer.end}">Fim</strong>
+                    <div th:text="${alunoOferta.oferta.dataFim != null ? #temporals.format(alunoOferta.oferta.dataFim, 'dd/MM/yyyy') : '-'}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4" th:if="${alunoOferta.plano != null}">
+        <div class="card-header" th:text="#{student.report.planData}">Dados do Plano Enviado</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <strong th:text="#{student.plan.codigoDisciplina}">Código da disciplina</strong>
+                    <div th:text="${alunoOferta.plano.codigoDisciplina}"></div>
+                </div>
+                <div class="col-md-5">
+                    <strong th:text="#{student.plan.nomeDisciplina}">Nome da disciplina</strong>
+                    <div th:text="${alunoOferta.plano.nomeDisciplina}"></div>
+                </div>
+                <div class="col-md-4">
+                    <strong th:text="#{student.plan.cursoDisciplina}">Curso da disciplina</strong>
+                    <div th:text="${alunoOferta.plano.cursoDisciplina}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{student.plan.professorSupervisor}">Professor supervisor</strong>
+                    <div th:text="${alunoOferta.plano.professorSupervisor != null ? alunoOferta.plano.professorSupervisor.nomeCompleto : '-'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{student.report.planSentAt}">Plano enviado em</strong>
+                    <div th:text="${alunoOferta.plano.enviadoEm != null ? #temporals.format(alunoOferta.plano.enviadoEm, 'dd/MM/yyyy HH:mm') : '-'}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header" th:text="#{student.offer.history.title}">Histórico de Status</div>
+        <div class="card-body p-0">
+            <div th:if="${#lists.isEmpty(historicoStatus)}" class="p-3 text-muted" th:text="#{student.offer.history.empty}">
+                Nenhuma mudança de status registrada até o momento.
+            </div>
+
+            <div th:unless="${#lists.isEmpty(historicoStatus)}" class="table-responsive">
+                <table class="table table-striped mb-0">
+                    <thead>
+                    <tr>
+                        <th th:text="#{student.offer.history.changedAt}">Data/Hora</th>
+                        <th th:text="#{student.offer.history.previousStatus}">Status Anterior</th>
+                        <th th:text="#{student.offer.history.newStatus}">Novo Status</th>
+                        <th th:text="#{student.offer.history.changedBy}">Responsável</th>
+                        <th th:text="#{student.offer.history.note}">Observação</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="log : ${historicoStatus}">
+                        <td th:text="${log.alteradoEm != null ? #temporals.format(log.alteradoEm, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                        <td th:text="${log.statusAnterior != null ? #messages.msgOrNull('statusAluno.' + log.statusAnterior.name()) : '-'}"></td>
+                        <td th:text="${#messages.msgOrNull('statusAluno.' + log.statusNovo.name())}"></td>
+                        <td th:text="${log.alteradoPor != null ? log.alteradoPor.nomeCompleto : '-'}"></td>
+                        <td th:text="${log.observacao != null && !log.observacao.isBlank() ? log.observacao : '-'}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="@{/aluno/ofertas/{id}/relatorio(id=${alunoOferta.id})}" th:object="${relatorioForm}" method="post" enctype="multipart/form-data">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="indicadorFrequencia" class="form-label" th:text="#{student.report.indicadorFrequencia}">Frequência (%)</label>
+                        <input id="indicadorFrequencia" type="number" min="0" max="100" class="form-control" th:field="*{indicadorFrequencia}">
+                        <div class="text-danger small" th:if="${#fields.hasErrors('indicadorFrequencia')}" th:errors="*{indicadorFrequencia}"></div>
+                    </div>
+
+                    <div class="col-12">
+                        <label for="arquivo" class="form-label" th:text="#{student.report.arquivo}">Arquivo PDF</label>
+                        <input id="arquivo" type="file" class="form-control" th:field="*{arquivo}" accept="application/pdf,.pdf">
+                        <div class="form-text" th:text="#{student.report.arquivo.hint}">Envie um PDF com no máximo 5MB.</div>
+                        <div class="text-danger small" th:if="${#fields.hasErrors('arquivo')}" th:errors="*{arquivo}"></div>
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2">
+                    <button type="submit" class="btn btn-primary" th:text="#{student.report.submit}">Enviar relatório final</button>
+                    <a class="btn btn-outline-secondary" th:href="@{/aluno/ofertas/{id}(id=${alunoOferta.id})}" th:text="#{user.cancel}">
+                        Cancelar
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

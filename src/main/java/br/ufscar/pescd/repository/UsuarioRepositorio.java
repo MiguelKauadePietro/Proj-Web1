@@ -20,4 +20,6 @@ public interface UsuarioRepositorio extends JpaRepository<Usuario, Long> {
     boolean existsByUsername(String username);
 
     List<Usuario> findByPerfilIn(List<Perfil> perfis);
+
+    List<Usuario> findByPerfilInAndAtivoTrue(List<Perfil> perfis);
 }

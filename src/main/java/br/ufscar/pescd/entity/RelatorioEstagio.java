@@ -34,7 +34,7 @@ public class RelatorioEstagio {
 
     private String arquivoPath;
 
-    private Boolean indicadorFrequencia;
+    private Integer indicadorFrequencia;
 
     private LocalDateTime enviadoEm;
 

@@ -23,6 +23,9 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class DatabaseDataSeeder implements CommandLineRunner {
 
+    private static final String OFERTA_NOME_TESTE = "Estágio Docente — Computação 2025/1";
+    private static final String OFERTA_SEMESTRE_TESTE = "2025/1";
+
     private final UsuarioRepositorio usuarioRepositorio;
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
@@ -30,11 +33,7 @@ public class DatabaseDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (usuarioRepositorio.count() > 0) {
-            return;
-        }
-
-        log.info("Populando banco de dados com dados de exemplo...");
+        log.info("Garantindo massa mínima de dados para o sistema...");
 
         criarUsuario("Admin Sistema", "admin@pescd.ufscar.br", "admin", "admin123", Perfil.ADMINISTRADOR);
         Usuario secretario = criarUsuario("Secretária Pós", "secretaria@pescd.ufscar.br", "secretaria", "secretario123", Perfil.SECRETARIO);
@@ -43,21 +42,10 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         Usuario aluno1 = criarUsuario("Carlos Pereira", "carlos.pereira@estudante.ufscar.br", "carlospereira", "aluno123", Perfil.ALUNO);
         Usuario aluno2 = criarUsuario("Ana Lima", "ana.lima@estudante.ufscar.br", "analima", "aluno123", Perfil.ALUNO);
 
-        Oferta oferta = ofertaRepositorio.save(new Oferta(
-                null,
-                "Estágio Docente — Computação 2025/1",
-                "2025/1",
-                LocalDate.of(2025, 3, 1),
-                LocalDate.of(2025, 7, 31),
-                prof1,
-                StatusOferta.EM_ANDAMENTO,
-                secretario,
-                LocalDateTime.now(),
-                null, null, null, null
-        ));
+        Oferta oferta = criarOfertaTeste(secretario, prof1);
 
-        alunoOfertaRepositorio.save(new AlunoOferta(null, aluno1, oferta, StatusAluno.NAO_ENVIADO, null, null));
-        alunoOfertaRepositorio.save(new AlunoOferta(null, aluno2, oferta, StatusAluno.NAO_ENVIADO, null, null));
+        vincularAlunoNaOfertaSeNecessario(aluno1, oferta);
+        vincularAlunoNaOfertaSeNecessario(aluno2, oferta);
 
         log.info("Seed concluído: {} usuários, {} oferta(s)", usuarioRepositorio.count(), ofertaRepositorio.count());
     }
@@ -67,5 +55,29 @@ public class DatabaseDataSeeder implements CommandLineRunner {
             return usuarioRepositorio.findByUsername(username).orElseThrow();
         }
         return usuarioRepositorio.save(new Usuario(null, nome, email, username, passwordEncoder.encode(senha), perfil, true));
+    }
+
+    private Oferta criarOfertaTeste(Usuario secretario, Usuario professorResponsavel) {
+        return ofertaRepositorio.findByNomeAndSemestre(OFERTA_NOME_TESTE, OFERTA_SEMESTRE_TESTE)
+                .orElseGet(() -> ofertaRepositorio.save(new Oferta(
+                        null,
+                        OFERTA_NOME_TESTE,
+                        OFERTA_SEMESTRE_TESTE,
+                        LocalDate.of(2025, 3, 1),
+                        LocalDate.of(2025, 7, 31),
+                        professorResponsavel,
+                        StatusOferta.EM_ANDAMENTO,
+                        secretario,
+                        LocalDateTime.now(),
+                        null, null, null, null
+                )));
+    }
+
+    private void vincularAlunoNaOfertaSeNecessario(Usuario aluno, Oferta oferta) {
+        if (alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno)) {
+            return;
+        }
+
+        alunoOfertaRepositorio.save(new AlunoOferta(null, aluno, oferta, StatusAluno.NAO_ENVIADO, null, null));
     }
 }

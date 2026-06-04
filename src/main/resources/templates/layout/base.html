@@ -32,10 +32,10 @@
             </ul>
             <ul class="navbar-nav ms-auto align-items-center">
                 <li class="nav-item me-2">
-                    <a class="nav-link text-white-50 small" th:href="@{/(lang=pt_BR)}">PT</a>
+                    <a class="nav-link text-white-50 small" th:href="${langUrlPt}">PT</a>
                 </li>
                 <li class="nav-item me-3">
-                    <a class="nav-link text-white-50 small" th:href="@{/(lang=en)}">EN</a>
+                    <a class="nav-link text-white-50 small" th:href="${langUrlEn}">EN</a>
                 </li>
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <span class="navbar-text text-white me-2" sec:authentication="name"></span>
