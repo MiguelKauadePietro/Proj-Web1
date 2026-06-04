@@ -44,16 +44,16 @@ Configuração JPA atual:
 
 ## Changelog
 
-| Data | Autor | Descrição |
-|------|-------|-----------|
-| 24/05/2026 | Maria Luiza Fernandes Prestes Cesar | first commit |
-| 24/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona entidades e repositórios do domínio de estágio |
-| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona login, crud de usuarios e listagem de ofertas |
-| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona README e documento de requisitos |
-| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona linter checkstyle |
-| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona favicon |
-| 01/06/2026 | Francini Stefany Assandre | PR.03: Tela e controle de solicitação de encerramento da oferta. |
-| 01/06/2026 | Francini Stefany Assandre | S.04: Lógica de homologação do encerramento e atualização do status. |
-| 01/06/2026 | Francini Stefany Assandre | Integração: Ajustes no AlunoOfertaRepositorio e regras do Spring Security. |
+| Data | Autor | Descrição                                                                         |
+|------|-------|-----------------------------------------------------------------------------------|
+| 24/05/2026 | Maria Luiza Fernandes Prestes Cesar | first commit                                                                      |
+| 24/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona entidades e repositórios do domínio de estágio                           |
+| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona login, crud de usuarios e listagem de ofertas                            |
+| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona README e documento de requisitos                                         |
+| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona linter checkstyle                                                        |
+| 30/05/2026 | Maria Luiza Fernandes Prestes Cesar | adiciona favicon                                                                  |
+| 01/06/2026 | Francini Stefany Assandre | PR.03: Tela e controle de solicitação de encerramento da oferta.                  |
+| 01/06/2026 | Francini Stefany Assandre | S.04: Lógica de homologação do encerramento e atualização do status.              |
+| 01/06/2026 | Francini Stefany Assandre | Integração: Ajustes no AlunoOfertaRepositorio e regras do Spring Security.        |
 | 01/06/2026 | Francini Stefany Assandre | Frontend: Estilização dos badges de status e botões condicionais em ofertas.html. |
-| 03/06/2026 | Miguel | Migração de persistência de H2 em memória para MySQL. |
+| 03/06/2026 | Miguel | Migração de persistência de H2 em memória para MySQL e integra fluxo do aluno ao PESCD com upload de PDF e logs de status.|
