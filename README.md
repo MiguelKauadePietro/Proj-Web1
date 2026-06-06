@@ -57,40 +57,4 @@ Configuração JPA atual:
 | 01/06/2026 | Francini Stefany Assandre | Integração: Ajustes no AlunoOfertaRepositorio e regras do Spring Security.        |
 | 01/06/2026 | Francini Stefany Assandre | Frontend: Estilização dos badges de status e botões condicionais em ofertas.html. |
 | 03/06/2026 | Miguel | Migração de persistência de H2 em memória para MySQL e integra fluxo do aluno ao PESCD com upload de PDF e logs de status.|
-
----
-
-## Ajustes de estabilização para testes
-
-Nesta rodada foram aplicadas apenas correções bloqueantes para permitir o teste da aplicação com segurança, sem implementar as estórias ainda pendentes da Pessoa 4.
-
-### O que foi ajustado
-
-- Correção das regras de segurança por perfil:
-  - `/admin/**` exige `ADMINISTRADOR`
-  - `/secretario/**` exige `SECRETARIO`
-  - `/professor/**` exige `PROFESSOR`
-  - `/aluno/**` exige `ALUNO`
-  - `/`, `/ofertas`, `/login` e assets públicos continuam acessíveis para visitante
-- Correção do redirecionamento pós-login:
-  - `ADMINISTRADOR` redireciona para `/admin/usuarios`
-  - `ALUNO` redireciona para `/aluno/ofertas`
-  - `SECRETARIO` redireciona para `/secretario/ofertas`, com rota existente que reaproveita a listagem pública
-  - `PROFESSOR` redireciona para `/professor/ofertas`, que redireciona para `/ofertas`
-- Ajuste do seeder para massa de dados idempotente:
-  - mantém/cria usuários de teste sem duplicação
-  - corrige a senha da secretaria para `secretaria123`
-  - garante a oferta principal `Estágio Docente – Computação 2025/1`
-  - garante vínculos únicos para `carlospereira`, `mariaaluna` e `pedrorelatorio`
-  - deixa `pedrorelatorio` em `PLANO_APROVADO` com `PlanoTrabalho` mínimo vinculado
-  - cria ofertas auxiliares nos status `CONCLUIDA`, `AGUARDANDO_ENCERRAMENTO` e `EM_ATRASO`
-- Correção do erro 500 em `/secretario/ofertas/{id}/alunos`:
-  - ajuste de tratamento para oferta inexistente
-  - ajuste defensivo nos templates para dados nulos de professor responsável
-
-### Escopo preservado
-
-- Não foi implementada a parte da Pessoa 4
-- Não foram implementadas as estórias `PS.01`, `PS.02`, `PS.03`, `PR.01`, `PR.02` e `PR.04`
-- Não houve alteração de arquitetura
-- Não houve remoção de código existente
+| 06/06/2026 | Miguel | Corrige segurança por perfil, redirecionamentos pós-login, massa idempotente de testes e erro 500 na tela do secretário. |
