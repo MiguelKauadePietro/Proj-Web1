@@ -39,7 +39,7 @@
             <td th:text="${entry.key.semestre}"></td>
             <td th:text="${#temporals.format(entry.key.dataInicio, 'dd/MM/yyyy')}"></td>
             <td th:text="${#temporals.format(entry.key.dataFim, 'dd/MM/yyyy')}"></td>
-            <td th:text="${entry.key.professorResponsavel?.username}"></td>
+            <td th:text="${entry.key.professorResponsavel != null ? entry.key.professorResponsavel.username : '-'}"></td>
             <td th:text="${entry.value}"></td>
             <td>
                 <span th:text="#{|status.${entry.key.status}|}"

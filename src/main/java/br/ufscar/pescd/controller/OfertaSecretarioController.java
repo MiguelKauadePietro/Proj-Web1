@@ -25,7 +25,10 @@ public class OfertaSecretarioController {
     private final OfertaService ofertaService;
     private final UsuarioRepositorio usuarioRepositorio;
 
-
+    @GetMapping
+    public String listarOfertasSecretario() {
+        return "redirect:/ofertas";
+    }
 
     @GetMapping("/nova")
     public String exibirFormulario(Model model) {

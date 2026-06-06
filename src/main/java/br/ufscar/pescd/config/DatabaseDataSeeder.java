@@ -2,12 +2,14 @@ package br.ufscar.pescd.config;
 
 import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.Oferta;
+import br.ufscar.pescd.entity.PlanoTrabalho;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
+import br.ufscar.pescd.repository.PlanoTrabalhoRepositorio;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,67 +19,247 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class DatabaseDataSeeder implements CommandLineRunner {
 
-    private static final String OFERTA_NOME_TESTE = "Estágio Docente — Computação 2025/1";
-    private static final String OFERTA_SEMESTRE_TESTE = "2025/1";
+    private static final String OFERTA_PRINCIPAL_NOME = "Estágio Docente – Computação 2025/1";
+    private static final String OFERTA_PRINCIPAL_SEMESTRE = "2025/1";
+    private static final String OFERTA_CONCLUIDA_NOME = "Estágio Docente – Computação 2024/2";
+    private static final String OFERTA_AGUARDANDO_NOME = "Estágio Docente – Computação 2024/1";
+    private static final String OFERTA_ATRASADA_NOME = "Estágio Docente – Computação 2023/2";
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
+    private final PlanoTrabalhoRepositorio planoTrabalhoRepositorio;
     private final PasswordEncoder passwordEncoder;
 
     @Override
     public void run(String... args) {
         log.info("Garantindo massa mínima de dados para o sistema...");
 
-        criarUsuario("Admin Sistema", "admin@pescd.ufscar.br", "admin", "admin123", Perfil.ADMINISTRADOR);
-        Usuario secretario = criarUsuario("Secretária Pós", "secretaria@pescd.ufscar.br", "secretaria", "secretario123", Perfil.SECRETARIO);
-        Usuario prof1 = criarUsuario("Prof. Dr. João Silva", "joao.silva@ufscar.br", "joaosilva", "professor123", Perfil.PROFESSOR);
-        criarUsuario("Profa. Dra. Maria Souza", "maria.souza@ufscar.br", "mariasouza", "professor123", Perfil.PROFESSOR);
-        Usuario aluno1 = criarUsuario("Carlos Pereira", "carlos.pereira@estudante.ufscar.br", "carlospereira", "aluno123", Perfil.ALUNO);
-        Usuario aluno2 = criarUsuario("Ana Lima", "ana.lima@estudante.ufscar.br", "analima", "aluno123", Perfil.ALUNO);
+        Usuario admin = criarOuAtualizarUsuario(
+                "Admin Sistema",
+                "admin@pescd.ufscar.br",
+                "admin",
+                "admin123",
+                Perfil.ADMINISTRADOR
+        );
+        Usuario secretario = criarOuAtualizarUsuario(
+                "Secretária Pós",
+                "secretaria@pescd.ufscar.br",
+                "secretaria",
+                "secretaria123",
+                Perfil.SECRETARIO
+        );
+        Usuario professorSupervisor = criarOuAtualizarUsuario(
+                "Prof. Dr. João Silva",
+                "joao.silva@ufscar.br",
+                "joaosilva",
+                "professor123",
+                Perfil.PROFESSOR
+        );
+        Usuario professorResponsavel = criarOuAtualizarUsuario(
+                "Profa. Dra. Maria Prof",
+                "mariaprof@ufscar.br",
+                "mariaprof",
+                "professor123",
+                Perfil.PROFESSOR
+        );
+        Usuario alunoPlano = criarOuAtualizarUsuario(
+                "Carlos Pereira",
+                "carlos.pereira@estudante.ufscar.br",
+                "carlospereira",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoDocumentacao = criarOuAtualizarUsuario(
+                "Maria Aluna",
+                "maria.aluna@estudante.ufscar.br",
+                "mariaaluna",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoRelatorio = criarOuAtualizarUsuario(
+                "Pedro Relatorio",
+                "pedro.relatorio@estudante.ufscar.br",
+                "pedrorelatorio",
+                "aluno123",
+                Perfil.ALUNO
+        );
 
-        Oferta oferta = criarOfertaTeste(secretario, prof1);
+        Oferta ofertaPrincipal = criarOuAtualizarOferta(
+                OFERTA_PRINCIPAL_NOME,
+                OFERTA_PRINCIPAL_SEMESTRE,
+                LocalDate.of(2025, 3, 1),
+                LocalDate.of(2026, 12, 31),
+                professorResponsavel,
+                StatusOferta.EM_ANDAMENTO,
+                secretario,
+                null,
+                null,
+                null,
+                null
+        );
 
-        vincularAlunoNaOfertaSeNecessario(aluno1, oferta);
-        vincularAlunoNaOfertaSeNecessario(aluno2, oferta);
+        garantirAlunoNaOferta(alunoPlano, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
+        garantirAlunoNaOferta(alunoDocumentacao, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
+        garantirAlunoNaOferta(alunoRelatorio, ofertaPrincipal, StatusAluno.PLANO_APROVADO, professorSupervisor);
+
+        criarOuAtualizarOferta(
+                OFERTA_CONCLUIDA_NOME,
+                "2024/2",
+                LocalDate.of(2024, 3, 1),
+                LocalDate.of(2024, 7, 31),
+                professorResponsavel,
+                StatusOferta.CONCLUIDA,
+                secretario,
+                secretario,
+                LocalDateTime.now().minusDays(30),
+                "Oferta concluída para teste.",
+                "Somente leitura."
+        );
+        criarOuAtualizarOferta(
+                OFERTA_AGUARDANDO_NOME,
+                "2024/1",
+                LocalDate.of(2024, 2, 15),
+                LocalDate.of(2024, 6, 30),
+                professorResponsavel,
+                StatusOferta.AGUARDANDO_ENCERRAMENTO,
+                secretario,
+                null,
+                null,
+                "Encerramento solicitado.",
+                "Aguardando homologação."
+        );
+        criarOuAtualizarOferta(
+                OFERTA_ATRASADA_NOME,
+                "2023/2",
+                LocalDate.of(2023, 8, 1),
+                LocalDate.of(2023, 12, 15),
+                professorResponsavel,
+                StatusOferta.EM_ATRASO,
+                secretario,
+                null,
+                null,
+                null,
+                null
+        );
 
         log.info("Seed concluído: {} usuários, {} oferta(s)", usuarioRepositorio.count(), ofertaRepositorio.count());
     }
 
-    private Usuario criarUsuario(String nome, String email, String username, String senha, Perfil perfil) {
-        if (usuarioRepositorio.existsByUsername(username)) {
-            return usuarioRepositorio.findByUsername(username).orElseThrow();
-        }
-        return usuarioRepositorio.save(new Usuario(null, nome, email, username, passwordEncoder.encode(senha), perfil, true));
+    private Usuario criarOuAtualizarUsuario(String nome, String email, String username, String senha, Perfil perfil) {
+        Usuario usuario = usuarioRepositorio.findByUsername(username)
+                .orElseGet(Usuario::new);
+
+        usuario.setNomeCompleto(nome);
+        usuario.setEmail(email);
+        usuario.setUsername(username);
+        usuario.setSenha(passwordEncoder.encode(senha));
+        usuario.setPerfil(perfil);
+        usuario.setAtivo(true);
+
+        return usuarioRepositorio.save(usuario);
     }
 
-    private Oferta criarOfertaTeste(Usuario secretario, Usuario professorResponsavel) {
-        return ofertaRepositorio.findByNomeAndSemestre(OFERTA_NOME_TESTE, OFERTA_SEMESTRE_TESTE)
-                .orElseGet(() -> ofertaRepositorio.save(new Oferta(
-                        null,
-                        OFERTA_NOME_TESTE,
-                        OFERTA_SEMESTRE_TESTE,
-                        LocalDate.of(2025, 3, 1),
-                        LocalDate.of(2025, 7, 31),
-                        professorResponsavel,
-                        StatusOferta.EM_ANDAMENTO,
-                        secretario,
-                        LocalDateTime.now(),
-                        null, null, null, null
-                )));
+    private Oferta criarOuAtualizarOferta(
+            String nome,
+            String semestre,
+            LocalDate dataInicio,
+            LocalDate dataFim,
+            Usuario professorResponsavel,
+            StatusOferta status,
+            Usuario criadoPor,
+            Usuario encerradoPor,
+            LocalDateTime encerradoEm,
+            String licoesAprendidas,
+            String instrucaoEncerramento) {
+        Oferta oferta = buscarOfertaPorNomeSemestreOuSemestre(nome, semestre)
+                .orElseGet(Oferta::new);
+
+        oferta.setNome(nome);
+        oferta.setSemestre(semestre);
+        oferta.setDataInicio(dataInicio);
+        oferta.setDataFim(dataFim);
+        oferta.setProfessorResponsavel(professorResponsavel);
+        oferta.setStatus(status);
+        oferta.setCriadoPor(criadoPor);
+        if (oferta.getCriadoEm() == null) {
+            oferta.setCriadoEm(LocalDateTime.now());
+        }
+        oferta.setEncerradoPor(encerradoPor);
+        oferta.setEncerradoEm(encerradoEm);
+        oferta.setLicoesAprendidas(licoesAprendidas);
+        oferta.setInstrucaoEncerramento(instrucaoEncerramento);
+
+        return ofertaRepositorio.save(oferta);
     }
 
-    private void vincularAlunoNaOfertaSeNecessario(Usuario aluno, Oferta oferta) {
-        if (alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno)) {
-            return;
+    private Optional<Oferta> buscarOfertaPorNomeSemestreOuSemestre(String nome, String semestre) {
+        Optional<Oferta> ofertaPorNome = ofertaRepositorio.findByNomeAndSemestre(nome, semestre);
+        if (ofertaPorNome.isPresent()) {
+            return ofertaPorNome;
         }
 
-        alunoOfertaRepositorio.save(new AlunoOferta(null, aluno, oferta, StatusAluno.NAO_ENVIADO, null, null));
+        return ofertaRepositorio.findAllByOrderBySemestreDesc().stream()
+                .filter(oferta -> semestre.equals(oferta.getSemestre()) && nomeParecido(nome, oferta.getNome()))
+                .findFirst();
+    }
+
+    private boolean nomeParecido(String esperado, String atual) {
+        return normalizarNome(esperado).equals(normalizarNome(atual));
+    }
+
+    private String normalizarNome(String nome) {
+        return nome == null ? "" : nome.replace('—', '-').replace('–', '-').trim();
+    }
+
+    private void garantirAlunoNaOferta(
+            Usuario aluno,
+            Oferta oferta,
+            StatusAluno status,
+            Usuario professorSupervisor) {
+        AlunoOferta alunoOferta = alunoOfertaRepositorio.findByOferta(oferta).stream()
+                .filter(vinculo -> vinculo.getAluno().getId().equals(aluno.getId()))
+                .findFirst()
+                .orElseGet(AlunoOferta::new);
+
+        alunoOferta.setAluno(aluno);
+        alunoOferta.setOferta(oferta);
+        alunoOferta.setStatus(status);
+
+        if (status == StatusAluno.PLANO_APROVADO) {
+            alunoOferta.setPlano(garantirPlanoMinimo(alunoOferta.getPlano(), professorSupervisor));
+        }
+
+        alunoOfertaRepositorio.save(alunoOferta);
+    }
+
+    private PlanoTrabalho garantirPlanoMinimo(PlanoTrabalho planoExistente, Usuario professorSupervisor) {
+        PlanoTrabalho plano = planoExistente != null
+                ? planoExistente
+                : new PlanoTrabalho();
+
+        plano.setCodigoDisciplina("DC-001");
+        plano.setNomeDisciplina("Estágio Supervisionado em Docência");
+        plano.setCursoDisciplina("Computação");
+        plano.setProfessorSupervisor(professorSupervisor);
+        plano.setArquivoPath("uploads/planos/plano-seed-pedrorelatorio.pdf");
+        if (plano.getEnviadoEm() == null) {
+            plano.setEnviadoEm(LocalDateTime.now().minusDays(10));
+        }
+        plano.setParecer("Plano aprovado para testes.");
+        if (plano.getAprovadoEm() == null) {
+            plano.setAprovadoEm(LocalDateTime.now().minusDays(5));
+        }
+        plano.setAprovadoPor(professorSupervisor);
+
+        return planoTrabalhoRepositorio.save(plano);
     }
 }

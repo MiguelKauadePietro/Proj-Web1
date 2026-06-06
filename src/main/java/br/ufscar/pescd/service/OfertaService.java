@@ -7,6 +7,7 @@ import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
+import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -49,11 +50,13 @@ public class OfertaService {
 
 
 
+    @Transactional(readOnly = true)
     public Oferta buscarPorId(Long id) {
         return ofertaRepositorio.findById(id)
-                .orElseThrow(() -> new RuntimeException("Oferta não encontrada com o ID: " + id));
+                .orElseThrow(() -> new EntityNotFoundException("Oferta não encontrada com o ID: " + id));
     }
 
+    @Transactional(readOnly = true)
     public List<AlunoOferta> buscarAlunosPorOferta(Long ofertaId) {
         Oferta oferta = buscarPorId(ofertaId);
         return alunoOfertaRepositorio.findByOferta(oferta);

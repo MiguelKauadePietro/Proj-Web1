@@ -24,7 +24,7 @@
         <div class="card-body bg-white rounded">
             <h2 class="text-secondary border-bottom pb-2" th:text="'Gerenciar Alunos: ' + ${oferta.nome}">Gerenciar Alunos</h2>
             <p class="mb-1"><strong>Semestre: </strong><span th:text="${oferta.semestre}"></span></p>
-            <p class="mb-0"><strong>Professor Responsável: </strong><span th:text="${oferta.professorResponsavel?.username}"></span></p>
+            <p class="mb-0"><strong>Professor Responsável: </strong><span th:text="${oferta.professorResponsavel != null ? oferta.professorResponsavel.username : '-'}"></span></p>
         </div>
     </div>
 
