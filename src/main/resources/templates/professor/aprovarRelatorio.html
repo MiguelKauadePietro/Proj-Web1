@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Aprovar Relatório</title>
+    <style>
+        @import url('https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css');
+    </style>
+</head>
+<body class="bg-light">
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="#">Sistema PESCD</a>
+        <div class="d-flex">
+            <a href="/professor" class="btn btn-outline-light btn-sm">Voltar</a>
+        </div>
+    </div>
+</nav>
+
+<div class="container mb-5">
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body bg-white rounded">
+            <h2 class="text-secondary border-bottom pb-2">Aprovar Relatório Final</h2>
+            <p class="mb-1"><strong>Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
+            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-secondary" th:text="${alunoOferta.status}"></span></p>
+        </div>
+    </div>
+
+    <div th:if="${alunoOferta.plano != null}" class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-bold">Dados do Plano</div>
+        <div class="card-body bg-white">
+            <p class="mb-1"><strong>Código da Disciplina:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
+            <p class="mb-1"><strong>Nome da Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
+            <p class="mb-0"><strong>Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white fw-bold">Parecer do Supervisor</div>
+        <div class="card-body bg-white">
+            <form th:action="@{/professor/{id}/aprovar-relatorio(id=${alunoOferta.id})}"
+                  th:object="${form}"
+                  method="post">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Parecer *</label>
+                    <textarea th:field="*{parecer}" class="form-control" rows="5" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Frequência (%) *</label>
+                    <input type="number" th:field="*{frequencia}" class="form-control" min="0" max="100" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Sugestão de Nota *</label>
+                    <select th:field="*{sugestaoNota}" class="form-select" required>
+                        <option value="">Selecione</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">Aprovar Relatório</button>
+                    <a href="/professor" class="btn btn-secondary">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

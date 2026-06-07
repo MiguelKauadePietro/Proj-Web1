@@ -29,7 +29,7 @@ public class AuthSuccessHandler implements
                     case ADMINISTRADOR -> "/admin/usuarios";
                     case SECRETARIO -> "/secretario/ofertas";
                     case ALUNO -> "/aluno/ofertas";
-                    case PROFESSOR -> "/professor/ofertas";
+                    case PROFESSOR -> "/professor";
                 };
                 break;
             }

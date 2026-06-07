@@ -109,7 +109,7 @@ public class DatabaseDataSeeder implements CommandLineRunner {
 
         garantirAlunoNaOferta(alunoPlano, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
         garantirAlunoNaOferta(alunoDocumentacao, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
-        garantirAlunoNaOferta(alunoRelatorio, ofertaPrincipal, StatusAluno.PLANO_APROVADO, professorSupervisor);
+        garantirAlunoNaOferta(alunoRelatorio, ofertaPrincipal, StatusAluno.PLANO_ENVIADO, professorSupervisor);
 
         criarOuAtualizarOferta(
                 OFERTA_CONCLUIDA_NOME,

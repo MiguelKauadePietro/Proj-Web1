@@ -25,5 +25,21 @@ public interface AlunoOfertaRepositorio extends JpaRepository<AlunoOferta, Long>
             """)
     List<AlunoOferta> findByAlunoOrdenado(Usuario aluno);
 
+    @Query("""
+            select ao
+            from AlunoOferta ao
+            where ao.plano.professorSupervisor = :professor
+            order by ao.oferta.semestre desc, ao.id desc
+            """)
+    List<AlunoOferta> findByProfessorSupervisor(Usuario professor);
+
+    @Query("""
+            select ao
+            from AlunoOferta ao
+            where ao.oferta.professorResponsavel = :professor
+            order by ao.oferta.semestre desc, ao.id desc
+            """)
+    List<AlunoOferta> findByProfessorResponsavel(Usuario professor);
+
     Optional<AlunoOferta> findByIdAndAluno(Long id, Usuario aluno);
 }

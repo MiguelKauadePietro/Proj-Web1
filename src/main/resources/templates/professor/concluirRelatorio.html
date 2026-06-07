@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<head th:replace="~{layout/base :: head('Aprovar Relatório')}"></head>
+<body>
+
+<nav th:replace="~{layout/base :: navbar}"></nav>
+
+<div class="container mt-4">
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h2 class="text-secondary border-bottom pb-2">Aprovar Relatório Final — Professor Responsável</h2>
+            <p class="mb-1"><strong>Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
+            <p class="mb-1"><strong>Oferta:</strong> <span th:text="${alunoOferta.oferta.nome}"></span></p>
+            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-secondary" th:text="${alunoOferta.status}"></span></p>
+        </div>
+    </div>
+
+    <div th:if="${alunoOferta.plano != null}" class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white fw-bold">Dados do Plano</div>
+        <div class="card-body">
+            <p class="mb-1"><strong>Código:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
+            <p class="mb-1"><strong>Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
+            <p class="mb-0"><strong>Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-dark text-white fw-bold">Parecer do Responsável</div>
+        <div class="card-body">
+            <form th:action="@{/professor/{id}/concluir-relatorio(id=${alunoOferta.id})}"
+                  th:object="${form}"
+                  method="post">
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Parecer *</label>
+                    <textarea th:field="*{parecer}" class="form-control" rows="5" required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Frequência (%) *</label>
+                    <input type="number" th:field="*{frequencia}" class="form-control" min="0" max="100" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Nota *</label>
+                    <select th:field="*{sugestaoNota}" class="form-select" required>
+                        <option value="">Selecione</option>
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">Aprovar Relatório</button>
+                    <a href="/professor" class="btn btn-secondary">Cancelar</a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<div th:replace="~{layout/base :: scripts}"></div>
+</body>
+</html>

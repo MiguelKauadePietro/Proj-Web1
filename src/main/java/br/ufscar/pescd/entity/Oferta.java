@@ -64,4 +64,5 @@ public class Oferta {
 
     @Column(columnDefinition = "TEXT")
     private String instrucaoEncerramento;
+
 }
