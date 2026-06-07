@@ -58,3 +58,5 @@ Configuração JPA atual:
 | 01/06/2026 | Francini Stefany Assandre | Frontend: Estilização dos badges de status e botões condicionais em ofertas.html. |
 | 03/06/2026 | Miguel | Migração de persistência de H2 em memória para MySQL e integra fluxo do aluno ao PESCD com upload de PDF e logs de status.|
 | 06/06/2026 | Miguel | Corrige segurança por perfil, redirecionamentos pós-login, massa idempotente de testes e erro 500 na tela do secretário. |
+| 06/06/2026 | Nicole Brito Cardoso | Implementa funcionalidades dos perfis Professor Supervisor e Professor Responsável, incluindo ajustes e integração dos fluxos. |
+
