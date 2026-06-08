@@ -36,6 +36,7 @@ public class DatabaseDataSeeder implements CommandLineRunner {
     private static final String OFERTA_CONCLUIDA_NOME = "Estruturas de Dados";
     private static final String OFERTA_AGUARDANDO_NOME = "Banco de Dados";
     private static final String OFERTA_ATRASADA_NOME = "Engenharia de Software";
+    private static final String OFERTA_QUASE_ENCERRAVEL_NOME = "Programação Orientada a Objetos";
     private static final String PDF_PLANO_PEDRO =
             "uploads/planos/plano-de-ensino.pdf";
 
@@ -156,6 +157,27 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "aluno123",
                 Perfil.ALUNO
         );
+        Usuario alunoDemoConcluido1 = criarOuAtualizarUsuario(
+                "Helena Demo Concluida",
+                "helena.demo@estudante.ufscar.br",
+                "helenademo",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoDemoConcluido2 = criarOuAtualizarUsuario(
+                "Gabriel Demo Concluido",
+                "gabriel.demo@estudante.ufscar.br",
+                "gabrieldemo",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoDemoPendente = criarOuAtualizarUsuario(
+                "Sofia Demo Pendente",
+                "sofia.demo@estudante.ufscar.br",
+                "sofiademo",
+                "aluno123",
+                Perfil.ALUNO
+        );
 
         Oferta ofertaPrincipal = criarOuAtualizarOferta(
                 OFERTA_PRINCIPAL_NOME,
@@ -209,6 +231,27 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "Aguardando homologação."
         );
         garantirAlunoNaOferta(alunoAguardando, ofertaAguardando, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+
+        // Cenário de demo: oferta a um aluno de poder ser encerrada.
+        // Todos os alunos já estão CONCLUIDO_PELO_RESPONSAVEL, exceto Sofia, que está em
+        // RELATORIO_APROVADO_SUPERVISOR. Basta a professora responsável (mariaprof) concluir
+        // o relatório dela para a oferta ficar encerrável.
+        Oferta ofertaQuaseEncerravel = criarOuAtualizarOferta(
+                OFERTA_QUASE_ENCERRAVEL_NOME,
+                "2025/1",
+                LocalDate.of(2025, 3, 1),
+                LocalDate.of(2025, 7, 31),
+                professorResponsavel,
+                StatusOferta.EM_ANDAMENTO,
+                secretario,
+                null,
+                null,
+                null,
+                null
+        );
+        garantirAlunoNaOferta(alunoDemoConcluido1, ofertaQuaseEncerravel, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+        garantirAlunoNaOferta(alunoDemoConcluido2, ofertaQuaseEncerravel, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+        garantirAlunoNaOferta(alunoDemoPendente, ofertaQuaseEncerravel, StatusAluno.RELATORIO_APROVADO_SUPERVISOR, professorSupervisor);
 
         // Oferta em atraso permanece sem alunos matriculados (cenário de turma vazia).
         criarOuAtualizarOferta(
