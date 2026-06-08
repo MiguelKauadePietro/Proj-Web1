@@ -31,11 +31,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class DatabaseDataSeeder implements CommandLineRunner {
 
-    private static final String OFERTA_PRINCIPAL_NOME = "Estágio Docente – Computação 2025/1";
+    private static final String OFERTA_PRINCIPAL_NOME = "Algoritmos e Programação 1";
     private static final String OFERTA_PRINCIPAL_SEMESTRE = "2025/1";
-    private static final String OFERTA_CONCLUIDA_NOME = "Estágio Docente – Computação 2024/2";
-    private static final String OFERTA_AGUARDANDO_NOME = "Estágio Docente – Computação 2024/1";
-    private static final String OFERTA_ATRASADA_NOME = "Estágio Docente – Computação 2023/2";
+    private static final String OFERTA_CONCLUIDA_NOME = "Estruturas de Dados";
+    private static final String OFERTA_AGUARDANDO_NOME = "Banco de Dados";
+    private static final String OFERTA_ATRASADA_NOME = "Engenharia de Software";
     private static final String PDF_PLANO_PEDRO =
             "uploads/planos/20260606185753-40ef7be9-18c3-4309-abc3-1e259d6977e4-WEB1_-_Estruturacao_AA1.pdf";
 
@@ -76,6 +76,13 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "Profa. Dra. Maria Prof",
                 "mariaprof@ufscar.br",
                 "mariaprof",
+                "professor123",
+                Perfil.PROFESSOR
+        );
+        Usuario professorResponsavel2 = criarOuAtualizarUsuario(
+                "Prof. Dr. Roberto Alves",
+                "roberto.alves@ufscar.br",
+                "robertoalves",
                 "professor123",
                 Perfil.PROFESSOR
         );
@@ -128,6 +135,27 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "aluno123",
                 Perfil.ALUNO
         );
+        Usuario alunoConcluido1 = criarOuAtualizarUsuario(
+                "Lucas Concluido",
+                "lucas.concluido@estudante.ufscar.br",
+                "lucasconcluido",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoConcluido2 = criarOuAtualizarUsuario(
+                "Beatriz Concluida",
+                "beatriz.concluida@estudante.ufscar.br",
+                "beatrizconcluida",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoAguardando = criarOuAtualizarUsuario(
+                "Rafael Aguardando",
+                "rafael.aguardando@estudante.ufscar.br",
+                "rafaelaguardando",
+                "aluno123",
+                Perfil.ALUNO
+        );
 
         Oferta ofertaPrincipal = criarOuAtualizarOferta(
                 OFERTA_PRINCIPAL_NOME,
@@ -151,12 +179,12 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         garantirAlunoNaOferta(alunoRelatorioEnviado, ofertaPrincipal, StatusAluno.RELATORIO_ENVIADO, professorSupervisor);
         garantirAlunoNaOferta(alunoRelatorioAprovado, ofertaPrincipal, StatusAluno.RELATORIO_APROVADO_SUPERVISOR, professorSupervisor);
 
-        criarOuAtualizarOferta(
+        Oferta ofertaConcluida = criarOuAtualizarOferta(
                 OFERTA_CONCLUIDA_NOME,
                 "2024/2",
                 LocalDate.of(2024, 3, 1),
                 LocalDate.of(2024, 7, 31),
-                professorResponsavel,
+                professorResponsavel2,
                 StatusOferta.CONCLUIDA,
                 secretario,
                 secretario,
@@ -164,7 +192,10 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "Oferta concluída para teste.",
                 "Somente leitura."
         );
-        criarOuAtualizarOferta(
+        garantirAlunoNaOferta(alunoConcluido1, ofertaConcluida, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+        garantirAlunoNaOferta(alunoConcluido2, ofertaConcluida, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+
+        Oferta ofertaAguardando = criarOuAtualizarOferta(
                 OFERTA_AGUARDANDO_NOME,
                 "2024/1",
                 LocalDate.of(2024, 2, 15),
@@ -177,12 +208,15 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "Encerramento solicitado.",
                 "Aguardando homologação."
         );
+        garantirAlunoNaOferta(alunoAguardando, ofertaAguardando, StatusAluno.CONCLUIDO_PELO_RESPONSAVEL, professorSupervisor);
+
+        // Oferta em atraso permanece sem alunos matriculados (cenário de turma vazia).
         criarOuAtualizarOferta(
                 OFERTA_ATRASADA_NOME,
                 "2023/2",
                 LocalDate.of(2023, 8, 1),
                 LocalDate.of(2023, 12, 15),
-                professorResponsavel,
+                professorResponsavel2,
                 StatusOferta.EM_ATRASO,
                 secretario,
                 null,
@@ -284,7 +318,9 @@ public class DatabaseDataSeeder implements CommandLineRunner {
 
         alunoOferta = alunoOfertaRepositorio.save(alunoOferta);
 
-        if (status == StatusAluno.RELATORIO_ENVIADO || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
+        if (status == StatusAluno.RELATORIO_ENVIADO
+                || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR
+                || status == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL) {
             garantirRelatorioMinimo(alunoOferta, status);
         }
     }
@@ -293,7 +329,8 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         return status == StatusAluno.PLANO_ENVIADO
                 || status == StatusAluno.PLANO_APROVADO
                 || status == StatusAluno.RELATORIO_ENVIADO
-                || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR;
+                || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR
+                || status == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL;
     }
 
     private PlanoTrabalho garantirPlanoMinimo(
@@ -315,7 +352,8 @@ public class DatabaseDataSeeder implements CommandLineRunner {
 
         boolean planoAprovado = statusAluno == StatusAluno.PLANO_APROVADO
                 || statusAluno == StatusAluno.RELATORIO_ENVIADO
-                || statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR;
+                || statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR
+                || statusAluno == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL;
 
         if (planoAprovado) {
             plano.setParecer("Plano aprovado para testes.");
@@ -360,12 +398,23 @@ public class DatabaseDataSeeder implements CommandLineRunner {
             relatorio.setEnviadoEm(LocalDateTime.now().minusDays(3));
         }
 
-        if (statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
+        if (statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR
+                || statusAluno == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL) {
             relatorio.setParecerSupervisor("Relatório aprovado pelo supervisor para testes.");
             relatorio.setFrequenciaSupervisor(85.0);
             relatorio.setSugestaoNotaSupervisor(Nota.A);
             if (relatorio.getAprovadoPorSupervisorEm() == null) {
-                relatorio.setAprovadoPorSupervisorEm(LocalDateTime.now().minusDays(1));
+                relatorio.setAprovadoPorSupervisorEm(LocalDateTime.now().minusDays(2));
+            }
+        }
+
+        if (statusAluno == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL) {
+            relatorio.setParecerResponsavel("Relatório concluído pelo responsável para testes.");
+            relatorio.setFrequenciaResponsavel(85.0);
+            relatorio.setNotaResponsavel(Nota.A);
+            relatorio.setAprovadoPorResponsavel(alunoOferta.getOferta().getProfessorResponsavel());
+            if (relatorio.getAprovadoPorResponsavelEm() == null) {
+                relatorio.setAprovadoPorResponsavelEm(LocalDateTime.now().minusDays(1));
             }
         }
 

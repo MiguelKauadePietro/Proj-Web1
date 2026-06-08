@@ -17,29 +17,6 @@ Valores padrão:
 - `DB_NAME=pescd`
 - `DB_USERNAME=root`
 - `DB_PASSWORD=root`
-
-Exemplo de criação do banco:
-
-```sql
-CREATE DATABASE pescd CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-Exemplo para rodar a aplicação com variáveis de ambiente:
-
-```bash
-DB_HOST=localhost \
-DB_PORT=3306 \
-DB_NAME=pescd \
-DB_USERNAME=root \
-DB_PASSWORD=root
-```
-
-Configuração JPA atual:
-
-- `spring.jpa.hibernate.ddl-auto=update`
-- o schema é criado/atualizado automaticamente pelo Hibernate
-- os dados deixam de ser apagados ao reiniciar a aplicação
-
 ---
 
 ## Changelog
