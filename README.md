@@ -12,23 +12,37 @@ Sistema web para automação do workflow de créditos de estágio para alunos de
 
 1. **JDK 21** instalado (`java -version` deve mostrar a versão 21).
 2. **Docker** + **Docker Compose** (no Windows, instale o **Docker Desktop** e deixe-o aberto/rodando).
-3. Maven **não** é necessário — o projeto já inclui o Maven Wrapper (`mvnw` / `mvnw.cmd`).
+3. **Maven** instalado (necessário para os comandos `make` no Linux/macOS). No Windows use o Maven Wrapper (`mvnw.cmd`) já incluído no projeto.
 
 > O banco MySQL roda em um container Docker. A aplicação cria o schema e popula os dados de teste automaticamente na primeira execução.
 
-### Linux / macOS
+### Linux / macOS (com `make`)
+
+O `Makefile` cuida de subir o banco e rodar a aplicação em um único comando:
 
 ```bash
-# 1. Subir o banco (MySQL + phpMyAdmin)
-docker compose -f docker/docker-compose.yml up -d
-
-# 2. Rodar a aplicação
-./mvnw spring-boot:run
+make run
 ```
 
-> Atalho: o projeto tem um `Makefile`. `make db-up` sobe o banco e `make run` sobe banco + aplicação de uma vez.
+Esse comando sobe o banco (MySQL + phpMyAdmin), espera o MySQL ficar pronto e inicia a aplicação. Pronto — acesse http://localhost:8080.
+
+Outros atalhos disponíveis:
+
+| Comando | O que faz |
+|---------|-----------|
+| `make run` | Sobe o banco e inicia a aplicação |
+| `make db-up` | Sobe só o banco (MySQL + phpMyAdmin) |
+| `make db-down` | Para o banco |
+| `make db-reset` | Apaga os dados e sobe o banco do zero |
+| `make db-logs` | Acompanha os logs do banco |
+| `make build` | Compila o projeto |
+| `make test` | Roda os testes |
+| `make lint` | Roda o Checkstyle |
+| `make clean` | Limpa os artefatos de build |
 
 ### Windows (PowerShell ou CMD)
+
+No Windows o `make` não está disponível por padrão, então rode os comandos diretamente:
 
 ```powershell
 REM 1. Subir o banco (MySQL + phpMyAdmin) — Docker Desktop precisa estar rodando
@@ -38,7 +52,7 @@ REM 2. Rodar a aplicação (use o wrapper .cmd)
 mvnw.cmd spring-boot:run
 ```
 
-> No Windows não use `make` nem `./mvnw` — rode os comandos acima diretamente.
+Acesse http://localhost:8080.
 
 ### Acessando
 
@@ -47,8 +61,8 @@ mvnw.cmd spring-boot:run
 | Aplicação | http://localhost:8080 | ver tabela de usuários abaixo |
 | phpMyAdmin (gerenciar o banco) | http://localhost:8081 | servidor `mysql`, usuário `root`, senha `root` |
 
-Para **parar** o banco: `docker compose -f docker/docker-compose.yml down`
-Para **zerar** o banco (apaga os dados): `docker compose -f docker/docker-compose.yml down -v`
+Para **parar** o banco: `make db-down` (ou `docker compose -f docker/docker-compose.yml down` no Windows)
+Para **zerar** o banco (apaga os dados): `make db-reset` (ou `docker compose -f docker/docker-compose.yml down -v` no Windows)
 
 ### Usuários de teste
 
