@@ -13,12 +13,14 @@ import br.ufscar.pescd.exception.DataFimAnteriorAoInicioException;
 import br.ufscar.pescd.exception.MatriculaNaoEncontradaException;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
+import br.ufscar.pescd.repository.UsuarioRepositorio;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +30,8 @@ public class OfertaService {
 
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
+    private final PasswordEncoder passwordEncoder;
 
     public Map<Oferta, Long> listarPublicasComContagem() {
         List<Oferta> ofertas = ofertaRepositorio.findAllByOrderBySemestreDesc();
@@ -83,6 +87,36 @@ public class OfertaService {
         alunoOferta.setStatus(StatusAluno.NAO_ENVIADO);
 
         alunoOfertaRepositorio.save(alunoOferta);
+    }
+
+    @Transactional
+    public boolean importarAlunoPorCsv(Long ofertaId, String ra, String nomeCompleto, String email) {
+        Oferta oferta = buscarPorId(ofertaId);
+
+        Usuario aluno = usuarioRepositorio.findByEmail(email)
+                .orElseGet(() -> cadastrarAlunoDeCsv(ra, nomeCompleto, email));
+
+        if (alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno)) {
+            return false;
+        }
+
+        AlunoOferta alunoOferta = new AlunoOferta();
+        alunoOferta.setOferta(oferta);
+        alunoOferta.setAluno(aluno);
+        alunoOferta.setStatus(StatusAluno.NAO_ENVIADO);
+        alunoOfertaRepositorio.save(alunoOferta);
+        return true;
+    }
+
+    private Usuario cadastrarAlunoDeCsv(String ra, String nomeCompleto, String email) {
+        Usuario aluno = new Usuario();
+        aluno.setNomeCompleto(nomeCompleto);
+        aluno.setEmail(email);
+        aluno.setUsername(email);
+        aluno.setSenha(passwordEncoder.encode(ra));
+        aluno.setPerfil(Perfil.ALUNO);
+        aluno.setAtivo(true);
+        return usuarioRepositorio.save(aluno);
     }
 
     @Transactional

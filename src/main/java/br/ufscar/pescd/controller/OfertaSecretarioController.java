@@ -10,7 +10,11 @@ import br.ufscar.pescd.service.OfertaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -88,21 +92,32 @@ public class OfertaSecretarioController {
             boolean primeiraLinha = true;
 
             while ((linha = fileReader.readLine()) != null) {
+                if (linha.isBlank()) {
+                    continue;
+                }
+
                 if (primeiraLinha) {
                     primeiraLinha = false;
-                    if(linha.contains("@") || !linha.equalsIgnoreCase("username")) {
-                    } else {
+                    String cabecalho = linha.toUpperCase();
+                    if (cabecalho.contains("RA") && cabecalho.contains("EMAIL")) {
                         continue;
                     }
                 }
 
-                String username = linha.trim().replace(";", "");
-                if (!username.isEmpty()) {
-                    Usuario aluno = usuarioRepositorio.findByUsername(username).orElse(null);
-                    if (aluno != null) {
-                        ofertaService.matricularAlunoNaOferta(id, aluno);
-                        contagem++;
-                    }
+                String[] colunas = linha.split(",");
+                if (colunas.length < 3) {
+                    continue;
+                }
+
+                String ra = colunas[0].trim();
+                String nomeCompleto = colunas[1].trim();
+                String email = colunas[2].trim();
+                if (ra.isEmpty() || nomeCompleto.isEmpty() || email.isEmpty()) {
+                    continue;
+                }
+
+                if (ofertaService.importarAlunoPorCsv(id, ra, nomeCompleto, email)) {
+                    contagem++;
                 }
             }
             redirectAttributes.addFlashAttribute("mensagemSucesso", contagem + " alunos importados com sucesso via CSV!");
