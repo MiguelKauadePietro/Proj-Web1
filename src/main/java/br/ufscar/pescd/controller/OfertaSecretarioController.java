@@ -32,11 +32,13 @@ public class OfertaSecretarioController {
     private final OfertaService ofertaService;
     private final UsuarioRepositorio usuarioRepositorio;
 
+    // S.03
     @GetMapping
     public String listarOfertasSecretario() {
         return "redirect:/ofertas";
     }
 
+    // S.01
     @GetMapping("/nova")
     public String exibirFormulario(Model model) {
         model.addAttribute("oferta", new Oferta());
@@ -55,6 +57,7 @@ public class OfertaSecretarioController {
         }
     }
 
+    // S.02
     @GetMapping("/{id}/alunos")
     public String gerenciarAlunos(@PathVariable Long id, Model model) {
         Oferta oferta = ofertaService.buscarPorId(id);
@@ -65,6 +68,7 @@ public class OfertaSecretarioController {
         return "secretario/alunos";
     }
 
+    // S.03
     @GetMapping("/{ofertaId}/alunos/{alunoOfertaId}/detalhes")
     public String detalharAluno(@PathVariable Long ofertaId, @PathVariable Long alunoOfertaId, Model model) {
         model.addAttribute("oferta", ofertaService.buscarPorId(ofertaId));
@@ -149,6 +153,7 @@ public class OfertaSecretarioController {
         return "redirect:/secretario/ofertas/" + ofertaId + "/alunos";
     }
 
+    // S.04
     @GetMapping("/{id}/homologar")
     public String homologarEncerramento(
             @PathVariable Long id,

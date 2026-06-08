@@ -25,6 +25,8 @@ public class ProfessorController {
 
     private final ProfessorService professorService;
 
+    // PS.01
+    // PR.04
     @GetMapping
     public String listar(Principal principal, Model model) {
         List<AlunoOferta> supervisionados =

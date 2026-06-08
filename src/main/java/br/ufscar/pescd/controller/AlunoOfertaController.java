@@ -30,6 +30,7 @@ public class AlunoOfertaController {
 
     private final AlunoOfertaService alunoOfertaService;
 
+    // AL.01
     @GetMapping
     public String listar(Principal principal, Model model) {
         List<AlunoOferta> ofertas = alunoOfertaService.listarDoAluno(principal.getName());
@@ -37,6 +38,7 @@ public class AlunoOfertaController {
         return "aluno/ofertas/lista";
     }
 
+    // U.?
     @GetMapping("/{alunoOfertaId}")
     public String detalhar(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
         AlunoOferta alunoOferta = alunoOfertaService.buscarDoAluno(alunoOfertaId, principal.getName());
@@ -49,6 +51,7 @@ public class AlunoOfertaController {
         return "aluno/ofertas/detalhe";
     }
 
+    // AL.02
     @GetMapping("/{alunoOfertaId}/plano")
     public String exibirFormularioPlano(
             @PathVariable Long alunoOfertaId,
@@ -96,6 +99,7 @@ public class AlunoOfertaController {
         }
     }
 
+    // AL.03
     @GetMapping("/{alunoOfertaId}/documentacao")
     public String exibirFormularioDocumentacao(
             @PathVariable Long alunoOfertaId,
@@ -144,6 +148,7 @@ public class AlunoOfertaController {
         }
     }
 
+    // AL.04
     @GetMapping("/{alunoOfertaId}/relatorio")
     public String exibirFormularioRelatorio(
             @PathVariable Long alunoOfertaId,

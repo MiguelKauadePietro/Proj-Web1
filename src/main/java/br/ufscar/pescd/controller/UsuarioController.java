@@ -28,6 +28,7 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
+    // AD.01
     @GetMapping
     public String listar(Model model) {
         model.addAttribute("usuarios", usuarioService.listarGerenciaveis());

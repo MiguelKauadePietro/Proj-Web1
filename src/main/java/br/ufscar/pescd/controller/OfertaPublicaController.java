@@ -16,6 +16,7 @@ public class OfertaPublicaController {
 
     private final OfertaService ofertaService;
 
+    // V.01
     @GetMapping
     public String listar(Model model) {
         Map<Oferta, Long> ofertasComContagem = ofertaService.listarPublicasComContagem();

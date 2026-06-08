@@ -113,3 +113,8 @@ Valores padrão (já configurados em `application.properties`):
 | 07/06/2026 | Miguel Kauã de Pietro               | Refinamento do fluxo do professor com validação de permissões e status, visualização segura de PDFs, resumo para encerramento de ofertas e exibição de frequência/nota nas telas. | 
 | 07/06/2026 | Maria Luiza Fernandes Prestes Cesar | Instruções de execução para Linux e Windows no README e imagem multi-arch do phpMyAdmin no Docker.                              |
 
+Por user stories:
+- Maria Luiza: U.01, AD.01, V.01, RNG
+- Francini: S.01, S.02, S.03, PR.04, PR.03, S.04
+- Miguel: AL.01, AL.02, AL.03, AL.04, história surpresa
+- Nicole: PS.01, PS.02, PS.03, Pr.01, PR.02
