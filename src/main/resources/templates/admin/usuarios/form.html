@@ -49,10 +49,13 @@
                 <div class="mb-3">
                     <label for="perfil" class="form-label" th:text="#{user.profile}">Perfil</label>
                     <select class="form-select" id="perfil" th:field="*{perfil}"
-                            th:classappend="${#fields.hasErrors('perfil')} ? 'is-invalid'">
+                            th:classappend="${#fields.hasErrors('perfil')} ? 'is-invalid'"
+                            th:disabled="${editandoProprioUsuario}">
                         <option value="" disabled>Selecione...</option>
                         <option th:each="p : ${perfis}" th:value="${p}" th:text="#{|perfil.${p}|}"></option>
                     </select>
+                    <input type="hidden" name="perfil" th:if="${editandoProprioUsuario}" th:value="*{perfil}">
+                    <div class="form-text" th:if="${editandoProprioUsuario}" th:text="#{user.profile.self.hint}"></div>
                     <div class="invalid-feedback" th:errors="*{perfil}"></div>
                 </div>
 
