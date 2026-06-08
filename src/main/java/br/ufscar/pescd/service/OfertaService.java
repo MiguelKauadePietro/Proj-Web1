@@ -1,19 +1,31 @@
 package br.ufscar.pescd.service;
 
 import br.ufscar.pescd.entity.AlunoOferta;
+import br.ufscar.pescd.entity.LogStatusAluno;
 import br.ufscar.pescd.entity.Oferta;
+import br.ufscar.pescd.entity.RelatorioEstagio;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
+import br.ufscar.pescd.exception.AcaoNaoPermitidaException;
+import br.ufscar.pescd.exception.AlunoJaMatriculadoException;
+import br.ufscar.pescd.exception.CamposObrigatoriosException;
+import br.ufscar.pescd.exception.DataFimAnteriorAoInicioException;
+import br.ufscar.pescd.exception.MatriculaNaoEncontradaException;
+import br.ufscar.pescd.exception.UsuarioNaoEncontradoException;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
+import br.ufscar.pescd.repository.LogStatusAlunoRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
+import br.ufscar.pescd.repository.RelatorioEstagioRepositorio;
+import br.ufscar.pescd.repository.UsuarioRepositorio;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +35,10 @@ public class OfertaService {
 
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
+    private final UsuarioRepositorio usuarioRepositorio;
+    private final LogStatusAlunoRepositorio logStatusAlunoRepositorio;
+    private final RelatorioEstagioRepositorio relatorioEstagioRepositorio;
+    private final PasswordEncoder passwordEncoder;
 
     public Map<Oferta, Long> listarPublicasComContagem() {
         List<Oferta> ofertas = ofertaRepositorio.findAllByOrderBySemestreDesc();
@@ -33,17 +49,22 @@ public class OfertaService {
         return resultado;
     }
 
-    public void salvar(Oferta oferta) {
+    @Transactional
+    public void salvar(Oferta oferta, String usernameCriador) {
         if (oferta.getNome() == null || oferta.getNome().trim().isEmpty()) {
             oferta.setNome("Oferta - " + oferta.getSemestre());
         }
 
         if (oferta.getDataInicio() != null && oferta.getDataFim() != null) {
             if (oferta.getDataFim().isBefore(oferta.getDataInicio())) {
-                throw new IllegalArgumentException("A data de fim deve ser posterior à data de início.");
+                throw new DataFimAnteriorAoInicioException();
             }
         }
 
+        Usuario criador = usuarioRepositorio.findByUsernameAndAtivoTrue(usernameCriador)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        oferta.setCriadoPor(criador);
         oferta.setCriadoEm(LocalDateTime.now());
         oferta.setStatus(StatusOferta.EM_ANDAMENTO);
         ofertaRepositorio.save(oferta);
@@ -63,13 +84,31 @@ public class OfertaService {
         return alunoOfertaRepositorio.findByOferta(oferta);
     }
 
+    @Transactional(readOnly = true)
+    public AlunoOferta buscarMatricula(Long alunoOfertaId) {
+        return alunoOfertaRepositorio.findById(alunoOfertaId)
+                .orElseThrow(MatriculaNaoEncontradaException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LogStatusAluno> buscarHistorico(Long alunoOfertaId) {
+        AlunoOferta alunoOferta = buscarMatricula(alunoOfertaId);
+        return logStatusAlunoRepositorio.findByAlunoOfertaOrderByAlteradoEmDesc(alunoOferta);
+    }
+
+    @Transactional(readOnly = true)
+    public RelatorioEstagio buscarRelatorio(Long alunoOfertaId) {
+        AlunoOferta alunoOferta = buscarMatricula(alunoOfertaId);
+        return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta).orElse(null);
+    }
+
     @Transactional
     public void matricularAlunoNaOferta(Long ofertaId, Usuario aluno) {
         Oferta oferta = buscarPorId(ofertaId);
 
         boolean jaMatriculado = alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno);
         if (jaMatriculado) {
-            throw new IllegalArgumentException("Este aluno já está matriculado nesta oferta.");
+            throw new AlunoJaMatriculadoException();
         }
 
         AlunoOferta alunoOferta = new AlunoOferta();
@@ -81,9 +120,39 @@ public class OfertaService {
     }
 
     @Transactional
+    public boolean importarAlunoPorCsv(Long ofertaId, String ra, String nomeCompleto, String email) {
+        Oferta oferta = buscarPorId(ofertaId);
+
+        Usuario aluno = usuarioRepositorio.findByEmail(email)
+                .orElseGet(() -> cadastrarAlunoDeCsv(ra, nomeCompleto, email));
+
+        if (alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno)) {
+            return false;
+        }
+
+        AlunoOferta alunoOferta = new AlunoOferta();
+        alunoOferta.setOferta(oferta);
+        alunoOferta.setAluno(aluno);
+        alunoOferta.setStatus(StatusAluno.NAO_ENVIADO);
+        alunoOfertaRepositorio.save(alunoOferta);
+        return true;
+    }
+
+    private Usuario cadastrarAlunoDeCsv(String ra, String nomeCompleto, String email) {
+        Usuario aluno = new Usuario();
+        aluno.setNomeCompleto(nomeCompleto);
+        aluno.setEmail(email);
+        aluno.setUsername(email);
+        aluno.setSenha(passwordEncoder.encode(ra));
+        aluno.setPerfil(Perfil.ALUNO);
+        aluno.setAtivo(true);
+        return usuarioRepositorio.save(aluno);
+    }
+
+    @Transactional
     public void removerAlunoDaOferta(Long alunoOfertaId) {
         if (!alunoOfertaRepositorio.existsById(alunoOfertaId)) {
-            throw new RuntimeException("Registro de matrícula não encontrado.");
+            throw new MatriculaNaoEncontradaException();
         }
         alunoOfertaRepositorio.deleteById(alunoOfertaId);
     }
@@ -93,11 +162,11 @@ public class OfertaService {
         Oferta oferta = buscarPorId(id);
 
         if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO) {
-            throw new IllegalStateException("Apenas ofertas EM_ANDAMENTO podem solicitar encerramento.");
+            throw new AcaoNaoPermitidaException("Apenas ofertas em andamento podem solicitar encerramento.");
         }
 
         if (licoes == null || licoes.trim().isEmpty() || instrucoes == null || instrucoes.trim().isEmpty()) {
-            throw new IllegalArgumentException("As lições aprendidas e instruções de encerramento são obrigatórias.");
+            throw new CamposObrigatoriosException("As lições aprendidas e instruções de encerramento são obrigatórias.");
         }
 
         oferta.setLicoesAprendidas(licoes);
@@ -113,11 +182,11 @@ public class OfertaService {
         Oferta oferta = buscarPorId(id);
 
         if (secretario == null || secretario.getPerfil() != Perfil.SECRETARIO) {
-            throw new IllegalStateException("Apenas um secretário pode homologar o encerramento.");
+            throw new AcaoNaoPermitidaException("Apenas um secretário pode homologar o encerramento.");
         }
 
         if (oferta.getStatus() != StatusOferta.AGUARDANDO_ENCERRAMENTO) {
-            throw new IllegalStateException("Apenas ofertas em estado AGUARDANDO_ENCERRAMENTO podem ser finalizadas.");
+            throw new AcaoNaoPermitidaException("Apenas ofertas aguardando encerramento podem ser finalizadas.");
         }
 
         oferta.setStatus(StatusOferta.CONCLUIDA);

@@ -8,7 +8,13 @@
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <div class="container mt-4">
-    <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
+        <a sec:authorize="hasRole('SECRETARIO')"
+           th:href="@{/secretario/ofertas/nova}"
+           class="btn btn-success"
+           th:text="#{offer.new}">Nova Oferta</a>
+    </div>
     <hr>
 
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -22,7 +28,8 @@
         Nenhuma oferta disponível.
     </div>
 
-    <table th:unless="${#maps.isEmpty(ofertasComContagem)}" class="table table-striped table-hover">
+    <div th:unless="${#maps.isEmpty(ofertasComContagem)}" class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
         <thead class="table-primary">
         <tr>
             <th th:text="#{offer.name}">Nome</th>
@@ -32,7 +39,7 @@
             <th th:text="#{offer.professor}">Professor Responsável</th>
             <th th:text="#{offer.students}">Alunos</th>
             <th th:text="#{offer.status}">Status</th>
-            <th th:text="#{user.actions}">Ações</th>
+            <th sec:authorize="hasAnyRole('SECRETARIO','PROFESSOR')" th:text="#{user.actions}">Ações</th>
         </tr>
         </thead>
         <tbody>
@@ -41,44 +48,52 @@
             <td th:text="${entry.key.semestre}"></td>
             <td th:text="${#temporals.format(entry.key.dataInicio, 'dd/MM/yyyy')}"></td>
             <td th:text="${#temporals.format(entry.key.dataFim, 'dd/MM/yyyy')}"></td>
-            <td th:text="${entry.key.professorResponsavel != null ? entry.key.professorResponsavel.username : '-'}"></td>
+            <td th:text="${entry.key.professorResponsavel != null ? entry.key.professorResponsavel.nomeCompleto : '-'}"></td>
             <td th:text="${entry.value}"></td>
             <td>
-                <span th:text="#{|status.${entry.key.status}|}"
-                      th:classappend="${entry.key.status.name() == 'EM_ANDAMENTO'} ? 'badge bg-success' :
-                                     (${entry.key.status.name() == 'EM_ATRASO'} ? 'badge bg-warning text-dark' :
-                                     (${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'} ? 'badge bg-info text-dark' :
-                                      'badge bg-secondary'))">
+                <span class="badge rounded-pill text-wrap"
+                      th:text="#{|status.${entry.key.status}|}"
+                      th:classappend="${entry.key.status.name() == 'EM_ANDAMENTO'} ? 'text-bg-success' :
+                                     (${entry.key.status.name() == 'EM_ATRASO'} ? 'text-bg-danger' :
+                                     (${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'} ? 'text-bg-warning' :
+                                      'text-bg-secondary'))">
                 </span>
             </td>
-            <td class="d-flex flex-column gap-2">
-                <a sec:authorize="hasRole('SECRETARIO')"
-                   th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}"
-                   class="btn btn-sm btn-primary"
-                   th:text="#{offer.manageStudents}">
-                    Gerenciar Alunos
-                </a>
+            <td sec:authorize="hasAnyRole('SECRETARIO','PROFESSOR')">
+                <div class="d-flex flex-column gap-2">
+                    <a sec:authorize="hasRole('SECRETARIO')"
+                       th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}"
+                       class="btn btn-sm btn-primary"
+                       th:text="#{offer.manageStudents}">
+                        Gerenciar Alunos
+                    </a>
 
-                <a sec:authorize="hasRole('PROFESSOR')"
-                   th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
-                   th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
-                   class="btn btn-sm btn-warning ms-1"
-                   th:text="#{offer.requestClosure}">
-                    Solicitar Encerramento
-                </a>
+                    <a sec:authorize="hasRole('PROFESSOR')"
+                       th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
+                       th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
+                       class="btn btn-sm btn-warning"
+                       th:text="#{offer.requestClosure}">
+                        Solicitar Encerramento
+                    </a>
 
-                <a sec:authorize="hasRole('SECRETARIO')"
-                   th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
-                   th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
-                   class="btn btn-sm btn-success ms-1"
-                   th:attr="onclick=|return confirm('${#messages.msg('offer.confirmHomologation')}');|"
-                   th:text="#{offer.approveClosure}">
-                    Homologar Encerramento
-                </a>
+                    <a sec:authorize="hasRole('SECRETARIO')"
+                       th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
+                       th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
+                       class="btn btn-sm btn-success"
+                       th:attr="onclick=|return confirm('${#messages.msg('offer.confirmHomologation')}');|"
+                       th:text="#{offer.approveClosure}">
+                        Homologar Encerramento
+                    </a>
+
+                    <span sec:authorize="hasRole('PROFESSOR')"
+                          th:if="${entry.key.status.name() != 'EM_ANDAMENTO'}"
+                          class="text-muted">-</span>
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div th:replace="~{layout/base :: scripts}"></div>

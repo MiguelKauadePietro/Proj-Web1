@@ -3,6 +3,7 @@ package br.ufscar.pescd.service;
 import br.ufscar.pescd.dto.UsuarioFormDto;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
+import br.ufscar.pescd.exception.AlterarProprioPerfilException;
 import br.ufscar.pescd.exception.DesativarProprioUsuarioException;
 import br.ufscar.pescd.exception.EmailJaCadastradoException;
 import br.ufscar.pescd.exception.UsuarioNaoEncontradoException;
@@ -48,8 +49,12 @@ public class UsuarioService {
     }
 
     @Transactional
-    public Usuario editar(Long id, UsuarioFormDto dto) {
+    public Usuario editar(Long id, UsuarioFormDto dto, String usernameLogado) {
         Usuario usuario = buscarPorId(id);
+
+        if (usuario.getUsername().equals(usernameLogado) && usuario.getPerfil() != dto.getPerfil()) {
+            throw new AlterarProprioPerfilException();
+        }
 
         if (usuarioRepositorio.existsByEmailAndIdNot(dto.getEmail(), id)) {
             throw new EmailJaCadastradoException();

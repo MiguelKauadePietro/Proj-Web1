@@ -22,7 +22,8 @@
 
         <div class="mb-3">
             <label class="form-label fw-bold">Nome da Oferta:</label>
-            <input type="text" th:field="*{nome}" class="form-control" placeholder="Ex: Lógica Digital" required />
+            <input type="text" th:field="*{nome}" class="form-control" placeholder="Opcional — se vazio, será gerado a partir do semestre" />
+            <div class="form-text">Se não preenchido, o nome será montado com base no semestre.</div>
         </div>
 
         <div class="mb-3">
@@ -36,7 +37,7 @@
                 <option value="">Selecione um professor...</option>
                 <option th:each="prof : ${professores}"
                         th:value="${prof.id}"
-                        th:text="${prof.username}">Nome do Professor</option>
+                        th:text="${prof.nomeCompleto}">Nome do Professor</option>
             </select>
         </div>
 

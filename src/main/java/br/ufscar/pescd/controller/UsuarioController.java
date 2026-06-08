@@ -60,10 +60,12 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}/editar")
-    public String editarForm(@PathVariable Long id, Model model) {
+    public String editarForm(@PathVariable Long id,
+                             @AuthenticationPrincipal UserDetails userDetails, Model model) {
         Usuario usuario = usuarioService.buscarPorId(id);
         model.addAttribute("usuarioForm", UsuarioFormDto.toDto(usuario));
         model.addAttribute("usuarioId", id);
+        model.addAttribute("editandoProprioUsuario", usuario.getUsername().equals(userDetails.getUsername()));
         model.addAttribute("perfis", List.of(Perfil.ADMINISTRADOR, Perfil.SECRETARIO, Perfil.PROFESSOR));
         return "admin/usuarios/form";
     }
@@ -71,18 +73,23 @@ public class UsuarioController {
     @PostMapping("/{id}/editar")
     public String editar(@PathVariable Long id,
                          @Valid @ModelAttribute("usuarioForm") UsuarioFormDto dto,
-                         BindingResult result, Model model, RedirectAttributes redirectAttrs) {
+                         BindingResult result, Model model,
+                         @AuthenticationPrincipal UserDetails userDetails,
+                         RedirectAttributes redirectAttrs) {
+        boolean editandoProprioUsuario = userDetails.getUsername().equals(dto.getUsername());
         if (result.hasErrors()) {
             model.addAttribute("usuarioId", id);
+            model.addAttribute("editandoProprioUsuario", editandoProprioUsuario);
             model.addAttribute("perfis", List.of(Perfil.ADMINISTRADOR, Perfil.SECRETARIO, Perfil.PROFESSOR));
             return "admin/usuarios/form";
         }
         try {
-            usuarioService.editar(id, dto);
+            usuarioService.editar(id, dto, userDetails.getUsername());
             redirectAttrs.addFlashAttribute("sucesso", "Usuário atualizado com sucesso.");
         } catch (PescdException e) {
             model.addAttribute("erro", e.getMessage());
             model.addAttribute("usuarioId", id);
+            model.addAttribute("editandoProprioUsuario", editandoProprioUsuario);
             model.addAttribute("perfis", List.of(Perfil.ADMINISTRADOR, Perfil.SECRETARIO, Perfil.PROFESSOR));
             return "admin/usuarios/form";
         }

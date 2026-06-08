@@ -14,6 +14,7 @@
         <a th:href="@{/admin/usuarios/novo}" class="btn btn-primary" th:text="#{user.new}">Novo Usuário</a>
     </div>
 
+    <div class="table-responsive">
     <table class="table table-striped table-hover">
         <thead class="table-primary">
         <tr>
@@ -49,6 +50,7 @@
         </tr>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div th:replace="~{layout/base :: scripts}"></div>

@@ -4,12 +4,17 @@ import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.Oferta;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
+import br.ufscar.pescd.exception.PescdException;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import br.ufscar.pescd.service.OfertaService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -35,17 +40,18 @@ public class OfertaSecretarioController {
     @GetMapping("/nova")
     public String exibirFormulario(Model model) {
         model.addAttribute("oferta", new Oferta());
-        model.addAttribute("professores", usuarioRepositorio.findAll());
+        model.addAttribute("professores", usuarioRepositorio.findByPerfilInAndAtivoTrue(List.of(Perfil.PROFESSOR)));
         return "secretario/formOferta";
     }
 
     @PostMapping("/salvar")
-    public String salvarOferta(Oferta oferta) {
+    public String salvarOferta(Oferta oferta, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            ofertaService.salvar(oferta);
+            ofertaService.salvar(oferta, principal.getName());
             return "redirect:/ofertas";
-        } catch (IllegalArgumentException e) {
-            return "secretario/formOferta";
+        } catch (PescdException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+            return "redirect:/secretario/ofertas/nova";
         }
     }
 
@@ -57,6 +63,15 @@ public class OfertaSecretarioController {
         model.addAttribute("oferta", oferta);
         model.addAttribute("alunos", alunosDaOferta);
         return "secretario/alunos";
+    }
+
+    @GetMapping("/{ofertaId}/alunos/{alunoOfertaId}/detalhes")
+    public String detalharAluno(@PathVariable Long ofertaId, @PathVariable Long alunoOfertaId, Model model) {
+        model.addAttribute("oferta", ofertaService.buscarPorId(ofertaId));
+        model.addAttribute("alunoOferta", ofertaService.buscarMatricula(alunoOfertaId));
+        model.addAttribute("historicoStatus", ofertaService.buscarHistorico(alunoOfertaId));
+        model.addAttribute("relatorio", ofertaService.buscarRelatorio(alunoOfertaId));
+        return "secretario/aluno-detalhe";
     }
 
     @PostMapping("/{id}/alunos/adicionar")
@@ -86,21 +101,32 @@ public class OfertaSecretarioController {
             boolean primeiraLinha = true;
 
             while ((linha = fileReader.readLine()) != null) {
+                if (linha.isBlank()) {
+                    continue;
+                }
+
                 if (primeiraLinha) {
                     primeiraLinha = false;
-                    if(linha.contains("@") || !linha.equalsIgnoreCase("username")) {
-                    } else {
+                    String cabecalho = linha.toUpperCase();
+                    if (cabecalho.contains("RA") && cabecalho.contains("EMAIL")) {
                         continue;
                     }
                 }
 
-                String username = linha.trim().replace(";", "");
-                if (!username.isEmpty()) {
-                    Usuario aluno = usuarioRepositorio.findByUsername(username).orElse(null);
-                    if (aluno != null) {
-                        ofertaService.matricularAlunoNaOferta(id, aluno);
-                        contagem++;
-                    }
+                String[] colunas = linha.split(",");
+                if (colunas.length < 3) {
+                    continue;
+                }
+
+                String ra = colunas[0].trim();
+                String nomeCompleto = colunas[1].trim();
+                String email = colunas[2].trim();
+                if (ra.isEmpty() || nomeCompleto.isEmpty() || email.isEmpty()) {
+                    continue;
+                }
+
+                if (ofertaService.importarAlunoPorCsv(id, ra, nomeCompleto, email)) {
+                    contagem++;
                 }
             }
             redirectAttributes.addFlashAttribute("mensagemSucesso", contagem + " alunos importados com sucesso via CSV!");

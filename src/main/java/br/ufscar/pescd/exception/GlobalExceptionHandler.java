@@ -25,6 +25,14 @@ public class GlobalExceptionHandler {
         return mav;
     }
 
+    @ExceptionHandler(PescdException.class)
+    public ModelAndView handleRegraNegocio(PescdException ex) {
+        log.error("Regra de negócio violada: {}", ex.getMessage());
+        ModelAndView mav = new ModelAndView("error/negocio");
+        mav.addObject("message", ex.getMessage());
+        return mav;
+    }
+
     @ExceptionHandler(Exception.class)
     public ModelAndView handleGeneric(Exception ex) {
         log.error("Erro interno: {}", ex.getMessage(), ex);
