@@ -4,6 +4,7 @@ import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.Oferta;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
+import br.ufscar.pescd.exception.PescdException;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import br.ufscar.pescd.service.OfertaService;
 import lombok.RequiredArgsConstructor;
@@ -40,12 +41,13 @@ public class OfertaSecretarioController {
     }
 
     @PostMapping("/salvar")
-    public String salvarOferta(Oferta oferta) {
+    public String salvarOferta(Oferta oferta, RedirectAttributes redirectAttributes) {
         try {
             ofertaService.salvar(oferta);
             return "redirect:/ofertas";
-        } catch (IllegalArgumentException e) {
-            return "secretario/formOferta";
+        } catch (PescdException e) {
+            redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
+            return "redirect:/secretario/ofertas/nova";
         }
     }
 

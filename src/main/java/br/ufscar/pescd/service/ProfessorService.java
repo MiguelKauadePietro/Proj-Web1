@@ -12,6 +12,7 @@ import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
+import br.ufscar.pescd.exception.AcaoNaoPermitidaException;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
 import br.ufscar.pescd.repository.DocumentacaoDocenciaRepositorio;
 import br.ufscar.pescd.repository.LogStatusAlunoRepositorio;
@@ -164,7 +165,7 @@ public class ProfessorService {
         validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.PLANO_ENVIADO) {
-            throw new IllegalStateException("O plano precisa estar enviado.");
+            throw new AcaoNaoPermitidaException("O plano precisa estar enviado.");
         }
 
         PlanoTrabalho plano = alunoOferta.getPlano();
@@ -190,7 +191,7 @@ public class ProfessorService {
         validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.RELATORIO_ENVIADO) {
-            throw new IllegalStateException("O relatório precisa estar enviado.");
+            throw new AcaoNaoPermitidaException("O relatório precisa estar enviado.");
         }
 
         RelatorioEstagio relatorio = relatorioEstagioRepositorio
@@ -220,7 +221,7 @@ public class ProfessorService {
         validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
-            throw new IllegalStateException("O relatório precisa estar aprovado pelo supervisor.");
+            throw new AcaoNaoPermitidaException("O relatório precisa estar aprovado pelo supervisor.");
         }
 
         RelatorioEstagio relatorio = relatorioEstagioRepositorio
@@ -251,7 +252,7 @@ public class ProfessorService {
         validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.DOCUMENTACAO_ENVIADA) {
-            throw new IllegalStateException("A documentação precisa estar enviada.");
+            throw new AcaoNaoPermitidaException("A documentação precisa estar enviada.");
         }
 
         DocumentacaoDocencia doc = alunoOferta.getDocumentacao();
@@ -279,11 +280,11 @@ public class ProfessorService {
         Oferta oferta = buscarOferta(ofertaId);
 
         if (!oferta.getProfessorResponsavel().equals(professor)) {
-            throw new IllegalStateException("Você não é o responsável por esta oferta.");
+            throw new AcaoNaoPermitidaException("Você não é o responsável por esta oferta.");
         }
 
         if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO && oferta.getStatus() != StatusOferta.EM_ATRASO) {
-            throw new IllegalStateException("A oferta precisa estar em andamento ou em atraso para ser encerrada.");
+            throw new AcaoNaoPermitidaException("A oferta precisa estar em andamento ou em atraso para ser encerrada.");
         }
 
         List<AlunoOferta> alunos = alunoOfertaRepositorio.findByOferta(oferta);
@@ -291,7 +292,7 @@ public class ProfessorService {
                 .allMatch(a -> a.getStatus() == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL);
 
         if (!todosCompletos) {
-            throw new IllegalStateException("Todos os alunos precisam estar com status 'Concluído pelo responsável'.");
+            throw new AcaoNaoPermitidaException("Todos os alunos precisam estar com status 'Concluído pelo responsável'.");
         }
 
         oferta.setStatus(StatusOferta.AGUARDANDO_ENCERRAMENTO);
@@ -336,7 +337,7 @@ public class ProfessorService {
 
     private void validarOfertaEditavel(Oferta oferta) {
         if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO && oferta.getStatus() != StatusOferta.EM_ATRASO) {
-            throw new IllegalStateException("Esta oferta não está em um status que permite alterações.");
+            throw new AcaoNaoPermitidaException("Esta oferta não está em um status que permite alterações.");
         }
     }
 

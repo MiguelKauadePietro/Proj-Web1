@@ -1,15 +1,20 @@
 package br.ufscar.pescd.config;
 
 import br.ufscar.pescd.entity.AlunoOferta;
+import br.ufscar.pescd.entity.DocumentacaoDocencia;
 import br.ufscar.pescd.entity.Oferta;
 import br.ufscar.pescd.entity.PlanoTrabalho;
+import br.ufscar.pescd.entity.RelatorioEstagio;
 import br.ufscar.pescd.entity.Usuario;
+import br.ufscar.pescd.entity.enums.Nota;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
+import br.ufscar.pescd.repository.DocumentacaoDocenciaRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
 import br.ufscar.pescd.repository.PlanoTrabalhoRepositorio;
+import br.ufscar.pescd.repository.RelatorioEstagioRepositorio;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -39,6 +44,8 @@ public class DatabaseDataSeeder implements CommandLineRunner {
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
     private final PlanoTrabalhoRepositorio planoTrabalhoRepositorio;
+    private final DocumentacaoDocenciaRepositorio documentacaoDocenciaRepositorio;
+    private final RelatorioEstagioRepositorio relatorioEstagioRepositorio;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -94,6 +101,34 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 "aluno123",
                 Perfil.ALUNO
         );
+        Usuario alunoPlanoAprovado = criarOuAtualizarUsuario(
+                "Ana Plano Aprovado",
+                "ana.plano@estudante.ufscar.br",
+                "anaplano",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoDocEnviada = criarOuAtualizarUsuario(
+                "Diego Documentacao",
+                "diego.doc@estudante.ufscar.br",
+                "diegodoc",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoRelatorioEnviado = criarOuAtualizarUsuario(
+                "Bruno Relatorio Enviado",
+                "bruno.relatorio@estudante.ufscar.br",
+                "brunorelatorio",
+                "aluno123",
+                Perfil.ALUNO
+        );
+        Usuario alunoRelatorioAprovado = criarOuAtualizarUsuario(
+                "Clara Relatorio Aprovado",
+                "clara.relatorio@estudante.ufscar.br",
+                "clararelatorio",
+                "aluno123",
+                Perfil.ALUNO
+        );
 
         Oferta ofertaPrincipal = criarOuAtualizarOferta(
                 OFERTA_PRINCIPAL_NOME,
@@ -109,9 +144,13 @@ public class DatabaseDataSeeder implements CommandLineRunner {
                 null
         );
 
-        garantirAlunoNaOferta(alunoPlano, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
-        garantirAlunoNaOferta(alunoDocumentacao, ofertaPrincipal, StatusAluno.NAO_ENVIADO, null);
+        garantirAlunoNaOferta(alunoPlano, ofertaPrincipal, StatusAluno.NAO_ENVIADO, professorSupervisor);
+        garantirAlunoNaOferta(alunoDocumentacao, ofertaPrincipal, StatusAluno.NAO_ENVIADO, professorSupervisor);
         garantirAlunoNaOferta(alunoRelatorio, ofertaPrincipal, StatusAluno.PLANO_ENVIADO, professorSupervisor);
+        garantirAlunoNaOferta(alunoPlanoAprovado, ofertaPrincipal, StatusAluno.PLANO_APROVADO, professorSupervisor);
+        garantirAlunoNaOferta(alunoDocEnviada, ofertaPrincipal, StatusAluno.DOCUMENTACAO_ENVIADA, professorSupervisor);
+        garantirAlunoNaOferta(alunoRelatorioEnviado, ofertaPrincipal, StatusAluno.RELATORIO_ENVIADO, professorSupervisor);
+        garantirAlunoNaOferta(alunoRelatorioAprovado, ofertaPrincipal, StatusAluno.RELATORIO_APROVADO_SUPERVISOR, professorSupervisor);
 
         criarOuAtualizarOferta(
                 OFERTA_CONCLUIDA_NOME,
@@ -236,11 +275,26 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         alunoOferta.setOferta(oferta);
         alunoOferta.setStatus(status);
 
-        if (status == StatusAluno.PLANO_ENVIADO || status == StatusAluno.PLANO_APROVADO) {
+        if (precisaDePlano(status)) {
             alunoOferta.setPlano(garantirPlanoMinimo(alunoOferta.getPlano(), professorSupervisor, status));
         }
 
-        alunoOfertaRepositorio.save(alunoOferta);
+        if (status == StatusAluno.DOCUMENTACAO_ENVIADA) {
+            alunoOferta.setDocumentacao(garantirDocumentacaoMinima(alunoOferta.getDocumentacao()));
+        }
+
+        alunoOferta = alunoOfertaRepositorio.save(alunoOferta);
+
+        if (status == StatusAluno.RELATORIO_ENVIADO || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
+            garantirRelatorioMinimo(alunoOferta, status);
+        }
+    }
+
+    private boolean precisaDePlano(StatusAluno status) {
+        return status == StatusAluno.PLANO_ENVIADO
+                || status == StatusAluno.PLANO_APROVADO
+                || status == StatusAluno.RELATORIO_ENVIADO
+                || status == StatusAluno.RELATORIO_APROVADO_SUPERVISOR;
     }
 
     private PlanoTrabalho garantirPlanoMinimo(
@@ -260,7 +314,11 @@ public class DatabaseDataSeeder implements CommandLineRunner {
             plano.setEnviadoEm(LocalDateTime.now().minusDays(10));
         }
 
-        if (statusAluno == StatusAluno.PLANO_APROVADO) {
+        boolean planoAprovado = statusAluno == StatusAluno.PLANO_APROVADO
+                || statusAluno == StatusAluno.RELATORIO_ENVIADO
+                || statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR;
+
+        if (planoAprovado) {
             plano.setParecer("Plano aprovado para testes.");
             if (plano.getAprovadoEm() == null) {
                 plano.setAprovadoEm(LocalDateTime.now().minusDays(5));
@@ -273,5 +331,45 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         }
 
         return planoTrabalhoRepositorio.save(plano);
+    }
+
+    private DocumentacaoDocencia garantirDocumentacaoMinima(DocumentacaoDocencia documentacaoExistente) {
+        DocumentacaoDocencia documentacao = documentacaoExistente != null
+                ? documentacaoExistente
+                : new DocumentacaoDocencia();
+
+        documentacao.setNomeInstituicao("UFSCar");
+        documentacao.setNomeDisciplina("Introdução à Programação");
+        documentacao.setCursoDisciplina("Engenharia de Computação");
+        documentacao.setCargaHoraria(60);
+        documentacao.setArquivoPath(PDF_PLANO_PEDRO);
+        if (documentacao.getEnviadaEm() == null) {
+            documentacao.setEnviadaEm(LocalDateTime.now().minusDays(7));
+        }
+
+        return documentacaoDocenciaRepositorio.save(documentacao);
+    }
+
+    private void garantirRelatorioMinimo(AlunoOferta alunoOferta, StatusAluno statusAluno) {
+        RelatorioEstagio relatorio = relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta)
+                .orElseGet(RelatorioEstagio::new);
+
+        relatorio.setAlunoOferta(alunoOferta);
+        relatorio.setArquivoPath(PDF_PLANO_PEDRO);
+        relatorio.setIndicadorFrequencia(85);
+        if (relatorio.getEnviadoEm() == null) {
+            relatorio.setEnviadoEm(LocalDateTime.now().minusDays(3));
+        }
+
+        if (statusAluno == StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
+            relatorio.setParecerSupervisor("Relatório aprovado pelo supervisor para testes.");
+            relatorio.setFrequenciaSupervisor(85.0);
+            relatorio.setSugestaoNotaSupervisor(Nota.A);
+            if (relatorio.getAprovadoPorSupervisorEm() == null) {
+                relatorio.setAprovadoPorSupervisorEm(LocalDateTime.now().minusDays(1));
+            }
+        }
+
+        relatorioEstagioRepositorio.save(relatorio);
     }
 }

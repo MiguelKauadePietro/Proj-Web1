@@ -6,6 +6,11 @@ import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
+import br.ufscar.pescd.exception.AcaoNaoPermitidaException;
+import br.ufscar.pescd.exception.AlunoJaMatriculadoException;
+import br.ufscar.pescd.exception.CamposObrigatoriosException;
+import br.ufscar.pescd.exception.DataFimAnteriorAoInicioException;
+import br.ufscar.pescd.exception.MatriculaNaoEncontradaException;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
 import jakarta.persistence.EntityNotFoundException;
@@ -40,7 +45,7 @@ public class OfertaService {
 
         if (oferta.getDataInicio() != null && oferta.getDataFim() != null) {
             if (oferta.getDataFim().isBefore(oferta.getDataInicio())) {
-                throw new IllegalArgumentException("A data de fim deve ser posterior à data de início.");
+                throw new DataFimAnteriorAoInicioException();
             }
         }
 
@@ -69,7 +74,7 @@ public class OfertaService {
 
         boolean jaMatriculado = alunoOfertaRepositorio.existsByOfertaAndAluno(oferta, aluno);
         if (jaMatriculado) {
-            throw new IllegalArgumentException("Este aluno já está matriculado nesta oferta.");
+            throw new AlunoJaMatriculadoException();
         }
 
         AlunoOferta alunoOferta = new AlunoOferta();
@@ -83,7 +88,7 @@ public class OfertaService {
     @Transactional
     public void removerAlunoDaOferta(Long alunoOfertaId) {
         if (!alunoOfertaRepositorio.existsById(alunoOfertaId)) {
-            throw new RuntimeException("Registro de matrícula não encontrado.");
+            throw new MatriculaNaoEncontradaException();
         }
         alunoOfertaRepositorio.deleteById(alunoOfertaId);
     }
@@ -93,11 +98,11 @@ public class OfertaService {
         Oferta oferta = buscarPorId(id);
 
         if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO) {
-            throw new IllegalStateException("Apenas ofertas EM_ANDAMENTO podem solicitar encerramento.");
+            throw new AcaoNaoPermitidaException("Apenas ofertas em andamento podem solicitar encerramento.");
         }
 
         if (licoes == null || licoes.trim().isEmpty() || instrucoes == null || instrucoes.trim().isEmpty()) {
-            throw new IllegalArgumentException("As lições aprendidas e instruções de encerramento são obrigatórias.");
+            throw new CamposObrigatoriosException("As lições aprendidas e instruções de encerramento são obrigatórias.");
         }
 
         oferta.setLicoesAprendidas(licoes);
@@ -113,11 +118,11 @@ public class OfertaService {
         Oferta oferta = buscarPorId(id);
 
         if (secretario == null || secretario.getPerfil() != Perfil.SECRETARIO) {
-            throw new IllegalStateException("Apenas um secretário pode homologar o encerramento.");
+            throw new AcaoNaoPermitidaException("Apenas um secretário pode homologar o encerramento.");
         }
 
         if (oferta.getStatus() != StatusOferta.AGUARDANDO_ENCERRAMENTO) {
-            throw new IllegalStateException("Apenas ofertas em estado AGUARDANDO_ENCERRAMENTO podem ser finalizadas.");
+            throw new AcaoNaoPermitidaException("Apenas ofertas aguardando encerramento podem ser finalizadas.");
         }
 
         oferta.setStatus(StatusOferta.CONCLUIDA);

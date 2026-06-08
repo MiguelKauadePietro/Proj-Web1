@@ -18,6 +18,8 @@ import br.ufscar.pescd.repository.UsuarioRepositorio;
 import br.ufscar.pescd.dto.DocumentacaoDocenciaFormDto;
 import br.ufscar.pescd.dto.PlanoTrabalhoFormDto;
 import br.ufscar.pescd.dto.RelatorioFinalFormDto;
+import br.ufscar.pescd.exception.EnvioNaoPermitidoException;
+import br.ufscar.pescd.exception.ProfessorSupervisorInvalidoException;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -86,7 +88,7 @@ public class AlunoOfertaService {
 
         Usuario professorSupervisor = usuarioRepositorio.findById(form.getProfessorSupervisorId())
                 .filter(usuario -> usuario.getPerfil() == Perfil.PROFESSOR)
-                .orElseThrow(() -> new IllegalArgumentException("Professor supervisor inválido."));
+                .orElseThrow(ProfessorSupervisorInvalidoException::new);
 
         String arquivoPath = arquivoStorageService.salvarPdf(form.getArquivo(), "planos");
 
@@ -178,25 +180,25 @@ public class AlunoOfertaService {
 
     private void validarEnvioPlano(AlunoOferta alunoOferta) {
         if (alunoOferta.getOferta().getStatus() != StatusOferta.EM_ANDAMENTO) {
-            throw new IllegalStateException("O plano só pode ser enviado para ofertas em andamento.");
+            throw new EnvioNaoPermitidoException("O plano só pode ser enviado para ofertas em andamento.");
         }
 
         if (alunoOferta.getStatus() != StatusAluno.NAO_ENVIADO) {
-            throw new IllegalStateException("O plano só pode ser enviado quando o status do aluno for Não enviado.");
+            throw new EnvioNaoPermitidoException("O plano só pode ser enviado quando o status do aluno for Não enviado.");
         }
     }
 
     private void validarEnvioRelatorio(AlunoOferta alunoOferta) {
         if (alunoOferta.getOferta().getStatus() != StatusOferta.EM_ANDAMENTO) {
-            throw new IllegalStateException("O relatório só pode ser enviado para ofertas em andamento.");
+            throw new EnvioNaoPermitidoException("O relatório só pode ser enviado para ofertas em andamento.");
         }
 
         if (alunoOferta.getStatus() != StatusAluno.PLANO_APROVADO) {
-            throw new IllegalStateException("O relatório final só pode ser enviado quando o plano estiver aprovado.");
+            throw new EnvioNaoPermitidoException("O relatório final só pode ser enviado quando o plano estiver aprovado.");
         }
 
         if (alunoOferta.getPlano() == null) {
-            throw new IllegalStateException("Não há plano de trabalho associado a esta oferta.");
+            throw new EnvioNaoPermitidoException("Não há plano de trabalho associado a esta oferta.");
         }
     }
 

@@ -7,6 +7,7 @@ import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.LogStatusAluno;
 import br.ufscar.pescd.entity.RelatorioEstagio;
 import br.ufscar.pescd.entity.Usuario;
+import br.ufscar.pescd.exception.PescdException;
 import jakarta.validation.Valid;
 import br.ufscar.pescd.service.AlunoOfertaService;
 import java.security.Principal;
@@ -59,7 +60,7 @@ public class AlunoOfertaController {
             AlunoOferta alunoOferta = alunoOfertaService.buscarDoAluno(alunoOfertaId, principal.getName());
             prepararFormularioPlano(model, alunoOferta, new PlanoTrabalhoFormDto());
             return "aluno/ofertas/plano-form";
-        } catch (IllegalStateException ex) {
+        } catch (PescdException ex) {
             redirectAttributes.addFlashAttribute("mensagemErro", ex.getMessage());
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
         }
@@ -88,7 +89,7 @@ public class AlunoOfertaController {
             alunoOfertaService.enviarPlano(alunoOfertaId, principal.getName(), form);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Plano de trabalho enviado com sucesso.");
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
-        } catch (IllegalArgumentException | IllegalStateException ex) {
+        } catch (PescdException ex) {
             model.addAttribute("mensagemErro", ex.getMessage());
             prepararFormularioPlano(model, alunoOferta, form);
             return "aluno/ofertas/plano-form";
@@ -107,7 +108,7 @@ public class AlunoOfertaController {
             model.addAttribute("alunoOferta", alunoOferta);
             model.addAttribute("documentacaoForm", new DocumentacaoDocenciaFormDto());
             return "aluno/ofertas/documentacao-form";
-        } catch (IllegalStateException ex) {
+        } catch (PescdException ex) {
             redirectAttributes.addFlashAttribute("mensagemErro", ex.getMessage());
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
         }
@@ -136,7 +137,7 @@ public class AlunoOfertaController {
             alunoOfertaService.enviarDocumentacao(alunoOfertaId, principal.getName(), form);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Documentação enviada com sucesso.");
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
-        } catch (IllegalArgumentException | IllegalStateException ex) {
+        } catch (PescdException ex) {
             model.addAttribute("alunoOferta", alunoOferta);
             model.addAttribute("mensagemErro", ex.getMessage());
             return "aluno/ofertas/documentacao-form";
@@ -160,7 +161,7 @@ public class AlunoOfertaController {
             model.addAttribute("relatorioExistente", relatorioEstagio);
             model.addAttribute("relatorioForm", new RelatorioFinalFormDto());
             return "aluno/ofertas/relatorio-form";
-        } catch (IllegalStateException ex) {
+        } catch (PescdException ex) {
             redirectAttributes.addFlashAttribute("mensagemErro", ex.getMessage());
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
         }
@@ -193,7 +194,7 @@ public class AlunoOfertaController {
             alunoOfertaService.enviarRelatorioFinal(alunoOfertaId, principal.getName(), form);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Relatório final enviado com sucesso.");
             return "redirect:/aluno/ofertas/" + alunoOfertaId;
-        } catch (IllegalArgumentException | IllegalStateException ex) {
+        } catch (PescdException ex) {
             model.addAttribute("alunoOferta", alunoOferta);
             model.addAttribute("historicoStatus", historico);
             model.addAttribute("relatorioExistente", relatorioEstagio);
