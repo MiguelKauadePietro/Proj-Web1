@@ -1,7 +1,9 @@
 package br.ufscar.pescd.service;
 
 import br.ufscar.pescd.entity.AlunoOferta;
+import br.ufscar.pescd.entity.LogStatusAluno;
 import br.ufscar.pescd.entity.Oferta;
+import br.ufscar.pescd.entity.RelatorioEstagio;
 import br.ufscar.pescd.entity.Usuario;
 import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
@@ -11,8 +13,11 @@ import br.ufscar.pescd.exception.AlunoJaMatriculadoException;
 import br.ufscar.pescd.exception.CamposObrigatoriosException;
 import br.ufscar.pescd.exception.DataFimAnteriorAoInicioException;
 import br.ufscar.pescd.exception.MatriculaNaoEncontradaException;
+import br.ufscar.pescd.exception.UsuarioNaoEncontradoException;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
+import br.ufscar.pescd.repository.LogStatusAlunoRepositorio;
 import br.ufscar.pescd.repository.OfertaRepositorio;
+import br.ufscar.pescd.repository.RelatorioEstagioRepositorio;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import jakarta.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
@@ -31,6 +36,8 @@ public class OfertaService {
     private final OfertaRepositorio ofertaRepositorio;
     private final AlunoOfertaRepositorio alunoOfertaRepositorio;
     private final UsuarioRepositorio usuarioRepositorio;
+    private final LogStatusAlunoRepositorio logStatusAlunoRepositorio;
+    private final RelatorioEstagioRepositorio relatorioEstagioRepositorio;
     private final PasswordEncoder passwordEncoder;
 
     public Map<Oferta, Long> listarPublicasComContagem() {
@@ -42,7 +49,8 @@ public class OfertaService {
         return resultado;
     }
 
-    public void salvar(Oferta oferta) {
+    @Transactional
+    public void salvar(Oferta oferta, String usernameCriador) {
         if (oferta.getNome() == null || oferta.getNome().trim().isEmpty()) {
             oferta.setNome("Oferta - " + oferta.getSemestre());
         }
@@ -53,6 +61,10 @@ public class OfertaService {
             }
         }
 
+        Usuario criador = usuarioRepositorio.findByUsernameAndAtivoTrue(usernameCriador)
+                .orElseThrow(UsuarioNaoEncontradoException::new);
+
+        oferta.setCriadoPor(criador);
         oferta.setCriadoEm(LocalDateTime.now());
         oferta.setStatus(StatusOferta.EM_ANDAMENTO);
         ofertaRepositorio.save(oferta);
@@ -70,6 +82,24 @@ public class OfertaService {
     public List<AlunoOferta> buscarAlunosPorOferta(Long ofertaId) {
         Oferta oferta = buscarPorId(ofertaId);
         return alunoOfertaRepositorio.findByOferta(oferta);
+    }
+
+    @Transactional(readOnly = true)
+    public AlunoOferta buscarMatricula(Long alunoOfertaId) {
+        return alunoOfertaRepositorio.findById(alunoOfertaId)
+                .orElseThrow(MatriculaNaoEncontradaException::new);
+    }
+
+    @Transactional(readOnly = true)
+    public List<LogStatusAluno> buscarHistorico(Long alunoOfertaId) {
+        AlunoOferta alunoOferta = buscarMatricula(alunoOfertaId);
+        return logStatusAlunoRepositorio.findByAlunoOfertaOrderByAlteradoEmDesc(alunoOferta);
+    }
+
+    @Transactional(readOnly = true)
+    public RelatorioEstagio buscarRelatorio(Long alunoOfertaId) {
+        AlunoOferta alunoOferta = buscarMatricula(alunoOfertaId);
+        return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta).orElse(null);
     }
 
     @Transactional

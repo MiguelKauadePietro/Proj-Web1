@@ -18,7 +18,8 @@
         Voce ainda nao esta inscrito em ofertas.
     </div>
 
-    <table th:unless="${#lists.isEmpty(ofertasAluno)}" class="table table-striped table-hover align-middle">
+    <div th:unless="${#lists.isEmpty(ofertasAluno)}" class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
         <thead class="table-primary">
         <tr>
             <th th:text="#{offer.name}">Nome</th>
@@ -57,6 +58,7 @@
         </tr>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div th:replace="~{layout/base :: scripts}"></div>

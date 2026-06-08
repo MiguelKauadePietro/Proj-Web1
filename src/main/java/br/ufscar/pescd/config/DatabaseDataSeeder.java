@@ -37,7 +37,7 @@ public class DatabaseDataSeeder implements CommandLineRunner {
     private static final String OFERTA_AGUARDANDO_NOME = "Banco de Dados";
     private static final String OFERTA_ATRASADA_NOME = "Engenharia de Software";
     private static final String PDF_PLANO_PEDRO =
-            "uploads/planos/20260606185753-40ef7be9-18c3-4309-abc3-1e259d6977e4-WEB1_-_Estruturacao_AA1.pdf";
+            "uploads/planos/plano-de-ensino.pdf";
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final OfertaRepositorio ofertaRepositorio;

@@ -8,7 +8,13 @@
 <nav th:replace="~{layout/base :: navbar}"></nav>
 
 <div class="container mt-4">
-    <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
+    <div class="d-flex justify-content-between align-items-center">
+        <h2 th:text="#{offer.title}">Ofertas de Estágio</h2>
+        <a sec:authorize="hasRole('SECRETARIO')"
+           th:href="@{/secretario/ofertas/nova}"
+           class="btn btn-success"
+           th:text="#{offer.new}">Nova Oferta</a>
+    </div>
     <hr>
 
     <div th:if="${mensagemSucesso}" class="alert alert-success alert-dismissible fade show" role="alert">
@@ -22,17 +28,8 @@
         Nenhuma oferta disponível.
     </div>
 
-    <table th:unless="${#maps.isEmpty(ofertasComContagem)}" class="table table-striped table-hover align-middle" style="table-layout: fixed; width: 100%;">
-        <colgroup>
-            <col style="width: 23%;">
-            <col style="width: 9%;">
-            <col style="width: 10%;">
-            <col style="width: 10%;">
-            <col style="width: 20%;">
-            <col style="width: 9%;">
-            <col style="width: 19%;">
-            <col sec:authorize="hasAnyRole('SECRETARIO','PROFESSOR')" style="width: 16%;">
-        </colgroup>
+    <div th:unless="${#maps.isEmpty(ofertasComContagem)}" class="table-responsive">
+    <table class="table table-striped table-hover align-middle">
         <thead class="table-primary">
         <tr>
             <th th:text="#{offer.name}">Nome</th>
@@ -62,34 +59,41 @@
                                       'text-bg-secondary'))">
                 </span>
             </td>
-            <td sec:authorize="hasAnyRole('SECRETARIO','PROFESSOR')" class="d-flex flex-column gap-2">
-                <a sec:authorize="hasRole('SECRETARIO')"
-                   th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}"
-                   class="btn btn-sm btn-primary"
-                   th:text="#{offer.manageStudents}">
-                    Gerenciar Alunos
-                </a>
+            <td sec:authorize="hasAnyRole('SECRETARIO','PROFESSOR')">
+                <div class="d-flex flex-column gap-2">
+                    <a sec:authorize="hasRole('SECRETARIO')"
+                       th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}"
+                       class="btn btn-sm btn-primary"
+                       th:text="#{offer.manageStudents}">
+                        Gerenciar Alunos
+                    </a>
 
-                <a sec:authorize="hasRole('PROFESSOR')"
-                   th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
-                   th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
-                   class="btn btn-sm btn-warning ms-1"
-                   th:text="#{offer.requestClosure}">
-                    Solicitar Encerramento
-                </a>
+                    <a sec:authorize="hasRole('PROFESSOR')"
+                       th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
+                       th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
+                       class="btn btn-sm btn-warning"
+                       th:text="#{offer.requestClosure}">
+                        Solicitar Encerramento
+                    </a>
 
-                <a sec:authorize="hasRole('SECRETARIO')"
-                   th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
-                   th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
-                   class="btn btn-sm btn-success ms-1"
-                   th:attr="onclick=|return confirm('${#messages.msg('offer.confirmHomologation')}');|"
-                   th:text="#{offer.approveClosure}">
-                    Homologar Encerramento
-                </a>
+                    <a sec:authorize="hasRole('SECRETARIO')"
+                       th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
+                       th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
+                       class="btn btn-sm btn-success"
+                       th:attr="onclick=|return confirm('${#messages.msg('offer.confirmHomologation')}');|"
+                       th:text="#{offer.approveClosure}">
+                        Homologar Encerramento
+                    </a>
+
+                    <span sec:authorize="hasRole('PROFESSOR')"
+                          th:if="${entry.key.status.name() != 'EM_ANDAMENTO'}"
+                          class="text-muted">-</span>
+                </div>
             </td>
         </tr>
         </tbody>
     </table>
+    </div>
 </div>
 
 <div th:replace="~{layout/base :: scripts}"></div>

@@ -40,14 +40,14 @@ public class OfertaSecretarioController {
     @GetMapping("/nova")
     public String exibirFormulario(Model model) {
         model.addAttribute("oferta", new Oferta());
-        model.addAttribute("professores", usuarioRepositorio.findAll());
+        model.addAttribute("professores", usuarioRepositorio.findByPerfilInAndAtivoTrue(List.of(Perfil.PROFESSOR)));
         return "secretario/formOferta";
     }
 
     @PostMapping("/salvar")
-    public String salvarOferta(Oferta oferta, RedirectAttributes redirectAttributes) {
+    public String salvarOferta(Oferta oferta, Principal principal, RedirectAttributes redirectAttributes) {
         try {
-            ofertaService.salvar(oferta);
+            ofertaService.salvar(oferta, principal.getName());
             return "redirect:/ofertas";
         } catch (PescdException e) {
             redirectAttributes.addFlashAttribute("mensagemErro", e.getMessage());
@@ -63,6 +63,15 @@ public class OfertaSecretarioController {
         model.addAttribute("oferta", oferta);
         model.addAttribute("alunos", alunosDaOferta);
         return "secretario/alunos";
+    }
+
+    @GetMapping("/{ofertaId}/alunos/{alunoOfertaId}/detalhes")
+    public String detalharAluno(@PathVariable Long ofertaId, @PathVariable Long alunoOfertaId, Model model) {
+        model.addAttribute("oferta", ofertaService.buscarPorId(ofertaId));
+        model.addAttribute("alunoOferta", ofertaService.buscarMatricula(alunoOfertaId));
+        model.addAttribute("historicoStatus", ofertaService.buscarHistorico(alunoOfertaId));
+        model.addAttribute("relatorio", ofertaService.buscarRelatorio(alunoOfertaId));
+        return "secretario/aluno-detalhe";
     }
 
     @PostMapping("/{id}/alunos/adicionar")
