@@ -23,6 +23,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -66,6 +67,31 @@ public class ProfessorService {
     }
 
     @Transactional(readOnly = true)
+    public AlunoOferta buscarAlunoOfertaComoSupervisor(Long id, String username) {
+        Usuario professor = buscarProfessorAtivo(username);
+        AlunoOferta alunoOferta = buscarAlunoOferta(id);
+
+        if (alunoOferta.getPlano() == null || !professor.equals(alunoOferta.getPlano().getProfessorSupervisor())) {
+            throw new AccessDeniedException("Você não é o professor supervisor deste aluno.");
+        }
+
+        return alunoOferta;
+    }
+
+    @Transactional(readOnly = true)
+    public AlunoOferta buscarAlunoOfertaComoResponsavel(Long id, String username) {
+        Usuario professor = buscarProfessorAtivo(username);
+        AlunoOferta alunoOferta = buscarAlunoOferta(id);
+
+        if (alunoOferta.getOferta().getProfessorResponsavel() == null
+                || !professor.equals(alunoOferta.getOferta().getProfessorResponsavel())) {
+            throw new AccessDeniedException("Você não é o professor responsável desta oferta.");
+        }
+
+        return alunoOferta;
+    }
+
+    @Transactional(readOnly = true)
     public Oferta buscarOferta(Long id) {
         return ofertaRepositorio.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Oferta não encontrada."));
@@ -89,13 +115,53 @@ public class ProfessorService {
         return map;
     }
 
+    @Transactional(readOnly = true)
+    public RelatorioEstagio buscarRelatorio(Long alunoOfertaId) {
+        AlunoOferta alunoOferta = buscarAlunoOferta(alunoOfertaId);
+        return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta).orElse(null);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean podeEncerrarOferta(Long ofertaId, String username) {
+        Usuario professor = buscarProfessorAtivo(username);
+        Oferta oferta = buscarOferta(ofertaId);
+        if (!professor.equals(oferta.getProfessorResponsavel())) {
+            return false;
+        }
+
+        if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO && oferta.getStatus() != StatusOferta.EM_ATRASO) {
+            return false;
+        }
+
+        List<AlunoOferta> alunos = alunoOfertaRepositorio.findByOferta(oferta);
+        return alunos.stream().allMatch(aluno -> aluno.getStatus() == StatusAluno.CONCLUIDO_PELO_RESPONSAVEL);
+    }
+
+    @Transactional(readOnly = true)
+    public String buscarArquivoDoProfessor(Long alunoOfertaId, String username, String tipo) {
+        String tipoNormalizado = tipo == null ? "" : tipo.trim().toLowerCase();
+        AlunoOferta alunoOferta = switch (tipoNormalizado) {
+            case "plano", "relatorio" -> buscarAlunoOfertaComoSupervisorOuResponsavel(alunoOfertaId, username);
+            case "documentacao" -> buscarAlunoOfertaComoResponsavel(alunoOfertaId, username);
+            default -> throw new EntityNotFoundException("Tipo de arquivo não encontrado.");
+        };
+
+        return switch (tipoNormalizado) {
+            case "plano" -> buscarPlanoObrigatorio(alunoOferta).getArquivoPath();
+            case "relatorio" -> buscarRelatorioObrigatorio(alunoOferta).getArquivoPath();
+            case "documentacao" -> buscarDocumentacaoObrigatoria(alunoOferta).getArquivoPath();
+            default -> throw new EntityNotFoundException("Tipo de arquivo não encontrado.");
+        };
+    }
+
     @Transactional
     public void aprovarPlano(Long alunoOfertaId,
                              String username,
                              AprovacaoPlanoFormDto form) {
 
         Usuario professor = buscarProfessorAtivo(username);
-        AlunoOferta alunoOferta = buscarAlunoOferta(alunoOfertaId);
+        AlunoOferta alunoOferta = buscarAlunoOfertaComoSupervisor(alunoOfertaId, username);
+        validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.PLANO_ENVIADO) {
             throw new IllegalStateException("O plano precisa estar enviado.");
@@ -120,7 +186,8 @@ public class ProfessorService {
                                  AprovacaoRelatorioFormDto form) {
 
         Usuario professor = buscarProfessorAtivo(username);
-        AlunoOferta alunoOferta = buscarAlunoOferta(alunoOfertaId);
+        AlunoOferta alunoOferta = buscarAlunoOfertaComoSupervisor(alunoOfertaId, username);
+        validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.RELATORIO_ENVIADO) {
             throw new IllegalStateException("O relatório precisa estar enviado.");
@@ -149,7 +216,8 @@ public class ProfessorService {
                                              AprovacaoRelatorioFormDto form) {
 
         Usuario professor = buscarProfessorAtivo(username);
-        AlunoOferta alunoOferta = buscarAlunoOferta(alunoOfertaId);
+        AlunoOferta alunoOferta = buscarAlunoOfertaComoResponsavel(alunoOfertaId, username);
+        validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.RELATORIO_APROVADO_SUPERVISOR) {
             throw new IllegalStateException("O relatório precisa estar aprovado pelo supervisor.");
@@ -179,7 +247,8 @@ public class ProfessorService {
                                      AprovacaoRelatorioFormDto form) {
 
         Usuario professor = buscarProfessorAtivo(username);
-        AlunoOferta alunoOferta = buscarAlunoOferta(alunoOfertaId);
+        AlunoOferta alunoOferta = buscarAlunoOfertaComoResponsavel(alunoOfertaId, username);
+        validarOfertaEditavel(alunoOferta.getOferta());
 
         if (alunoOferta.getStatus() != StatusAluno.DOCUMENTACAO_ENVIADA) {
             throw new IllegalStateException("A documentação precisa estar enviada.");
@@ -205,12 +274,16 @@ public class ProfessorService {
     }
 
     @Transactional
-    public void encerrarOferta(Long ofertaId, String username, String licoesAprendidas) {
+    public void encerrarOferta(Long ofertaId, String username, String licoesAprendidas, String instrucaoEncerramento) {
         Usuario professor = buscarProfessorAtivo(username);
         Oferta oferta = buscarOferta(ofertaId);
 
         if (!oferta.getProfessorResponsavel().equals(professor)) {
             throw new IllegalStateException("Você não é o responsável por esta oferta.");
+        }
+
+        if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO && oferta.getStatus() != StatusOferta.EM_ATRASO) {
+            throw new IllegalStateException("A oferta precisa estar em andamento ou em atraso para ser encerrada.");
         }
 
         List<AlunoOferta> alunos = alunoOfertaRepositorio.findByOferta(oferta);
@@ -223,9 +296,48 @@ public class ProfessorService {
 
         oferta.setStatus(StatusOferta.AGUARDANDO_ENCERRAMENTO);
         oferta.setLicoesAprendidas(licoesAprendidas);
+        oferta.setInstrucaoEncerramento(instrucaoEncerramento);
         oferta.setEncerradoPor(professor);
         oferta.setEncerradoEm(LocalDateTime.now());
         ofertaRepositorio.save(oferta);
+    }
+
+    private AlunoOferta buscarAlunoOfertaComoSupervisorOuResponsavel(Long id, String username) {
+        Usuario professor = buscarProfessorAtivo(username);
+        AlunoOferta alunoOferta = buscarAlunoOferta(id);
+        boolean supervisor = alunoOferta.getPlano() != null && professor.equals(alunoOferta.getPlano().getProfessorSupervisor());
+        boolean responsavel = professor.equals(alunoOferta.getOferta().getProfessorResponsavel());
+
+        if (!supervisor && !responsavel) {
+            throw new AccessDeniedException("Você não tem permissão para acessar este arquivo.");
+        }
+
+        return alunoOferta;
+    }
+
+    private PlanoTrabalho buscarPlanoObrigatorio(AlunoOferta alunoOferta) {
+        if (alunoOferta.getPlano() == null) {
+            throw new EntityNotFoundException("Plano não encontrado.");
+        }
+        return alunoOferta.getPlano();
+    }
+
+    private RelatorioEstagio buscarRelatorioObrigatorio(AlunoOferta alunoOferta) {
+        return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta)
+                .orElseThrow(() -> new EntityNotFoundException("Relatório não encontrado."));
+    }
+
+    private DocumentacaoDocencia buscarDocumentacaoObrigatoria(AlunoOferta alunoOferta) {
+        if (alunoOferta.getDocumentacao() == null) {
+            throw new EntityNotFoundException("Documentação não encontrada.");
+        }
+        return alunoOferta.getDocumentacao();
+    }
+
+    private void validarOfertaEditavel(Oferta oferta) {
+        if (oferta.getStatus() != StatusOferta.EM_ANDAMENTO && oferta.getStatus() != StatusOferta.EM_ATRASO) {
+            throw new IllegalStateException("Esta oferta não está em um status que permite alterações.");
+        }
     }
 
     private void registrarLog(AlunoOferta alunoOferta,

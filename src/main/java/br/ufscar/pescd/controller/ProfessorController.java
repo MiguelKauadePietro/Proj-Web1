@@ -33,14 +33,20 @@ public class ProfessorController {
         model.addAttribute("alunosSupervisionados", supervisionados);
         model.addAttribute("alunosResponsavel", responsavel);
         model.addAttribute("ofertas", ofertas);
+        model.addAttribute(
+                "ofertasEncerraveis",
+                ofertas.stream()
+                        .filter(oferta -> professorService.podeEncerrarOferta(oferta.getId(), principal.getName()))
+                        .map(Oferta::getId)
+                        .toList());
 
         return "professor/lista";
     }
 
     // PS.02 - Aprovar Plano
     @GetMapping("/{alunoOfertaId}/aprovar-plano")
-    public String exibirAprovacaoPlano(@PathVariable Long alunoOfertaId, Model model) {
-        AlunoOferta alunoOferta = professorService.buscarAlunoOferta(alunoOfertaId);
+    public String exibirAprovacaoPlano(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
+        AlunoOferta alunoOferta = professorService.buscarAlunoOfertaComoSupervisor(alunoOfertaId, principal.getName());
         model.addAttribute("alunoOferta", alunoOferta);
         model.addAttribute("form", new AprovacaoPlanoFormDto());
         return "professor/aprovarPlano";
@@ -62,9 +68,10 @@ public class ProfessorController {
 
     // PS.03 - Aprovar Relatório (Supervisor)
     @GetMapping("/{alunoOfertaId}/aprovar-relatorio")
-    public String exibirAprovacaoRelatorio(@PathVariable Long alunoOfertaId, Model model) {
-        AlunoOferta alunoOferta = professorService.buscarAlunoOferta(alunoOfertaId);
+    public String exibirAprovacaoRelatorio(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
+        AlunoOferta alunoOferta = professorService.buscarAlunoOfertaComoSupervisor(alunoOfertaId, principal.getName());
         model.addAttribute("alunoOferta", alunoOferta);
+        model.addAttribute("relatorio", professorService.buscarRelatorio(alunoOfertaId));
         model.addAttribute("form", new AprovacaoRelatorioFormDto());
         return "professor/aprovarRelatorio";
     }
@@ -85,9 +92,10 @@ public class ProfessorController {
 
     // PR.01 - Concluir Relatório (Responsável)
     @GetMapping("/{alunoOfertaId}/concluir-relatorio")
-    public String exibirConclusaoRelatorio(@PathVariable Long alunoOfertaId, Model model) {
-        AlunoOferta alunoOferta = professorService.buscarAlunoOferta(alunoOfertaId);
+    public String exibirConclusaoRelatorio(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
+        AlunoOferta alunoOferta = professorService.buscarAlunoOfertaComoResponsavel(alunoOfertaId, principal.getName());
         model.addAttribute("alunoOferta", alunoOferta);
+        model.addAttribute("relatorio", professorService.buscarRelatorio(alunoOfertaId));
         model.addAttribute("form", new AprovacaoRelatorioFormDto());
         return "professor/concluirRelatorio";
     }
@@ -108,8 +116,8 @@ public class ProfessorController {
 
     // PR.02 - Analisar Documentação (Responsável)
     @GetMapping("/{alunoOfertaId}/analisar-documentacao")
-    public String exibirAnaliseDocumentacao(@PathVariable Long alunoOfertaId, Model model) {
-        AlunoOferta alunoOferta = professorService.buscarAlunoOferta(alunoOfertaId);
+    public String exibirAnaliseDocumentacao(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
+        AlunoOferta alunoOferta = professorService.buscarAlunoOfertaComoResponsavel(alunoOfertaId, principal.getName());
         model.addAttribute("alunoOferta", alunoOferta);
         model.addAttribute("form", new AprovacaoRelatorioFormDto());
         return "professor/analisarDocumentacao";

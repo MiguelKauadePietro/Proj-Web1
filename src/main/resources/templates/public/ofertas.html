@@ -1,5 +1,7 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="pt-BR">
 <head th:replace="~{layout/base :: head(#{offer.title})}"></head>
 <body>
 
@@ -30,7 +32,7 @@
             <th th:text="#{offer.professor}">Professor Responsável</th>
             <th th:text="#{offer.students}">Alunos</th>
             <th th:text="#{offer.status}">Status</th>
-            <th>Ações</th>
+            <th th:text="#{user.actions}">Ações</th>
         </tr>
         </thead>
         <tbody>
@@ -49,21 +51,28 @@
                                       'badge bg-secondary'))">
                 </span>
             </td>
-            <td class="d-flex flex-column gap-2" >
-                <a th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}" class="btn btn-sm btn-primary">
+            <td class="d-flex flex-column gap-2">
+                <a sec:authorize="hasRole('SECRETARIO')"
+                   th:href="@{/secretario/ofertas/{id}/alunos(id=${entry.key.id})}"
+                   class="btn btn-sm btn-primary"
+                   th:text="#{offer.manageStudents}">
                     Gerenciar Alunos
                 </a>
 
-                <a th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
+                <a sec:authorize="hasRole('PROFESSOR')"
+                   th:if="${entry.key.status.name() == 'EM_ANDAMENTO'}"
                    th:href="@{/professor/ofertas/{id}/encerrar(id=${entry.key.id})}"
-                   class="btn btn-sm btn-warning ms-1">
+                   class="btn btn-sm btn-warning ms-1"
+                   th:text="#{offer.requestClosure}">
                     Solicitar Encerramento
                 </a>
 
-                <a th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
+                <a sec:authorize="hasRole('SECRETARIO')"
+                   th:if="${entry.key.status.name() == 'AGUARDANDO_ENCERRAMENTO'}"
                    th:href="@{/secretario/ofertas/{id}/homologar(id=${entry.key.id})}"
                    class="btn btn-sm btn-success ms-1"
-                   onclick="return confirm('Deseja realmente homologar e finalizar esta oferta definitivamente?');">
+                   th:attr="onclick=|return confirm('${#messages.msg('offer.confirmHomologation')}');|"
+                   th:text="#{offer.approveClosure}">
                     Homologar Encerramento
                 </a>
             </td>

@@ -140,6 +140,17 @@ public class AlunoOfertaService {
         return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta).orElse(null);
     }
 
+    @Transactional(readOnly = true)
+    public String buscarArquivoDoAluno(Long alunoOfertaId, String username, String tipo) {
+        AlunoOferta alunoOferta = buscarDoAluno(alunoOfertaId, username);
+        return switch (normalizarTipoArquivo(tipo)) {
+            case "plano" -> buscarPlanoObrigatorio(alunoOferta).getArquivoPath();
+            case "relatorio" -> buscarRelatorioObrigatorio(alunoOferta).getArquivoPath();
+            case "documentacao" -> buscarDocumentacaoObrigatoria(alunoOferta).getArquivoPath();
+            default -> throw new EntityNotFoundException("Tipo de arquivo não encontrado.");
+        };
+    }
+
     @Transactional
     public void enviarRelatorioFinal(Long alunoOfertaId, String username, RelatorioFinalFormDto form) {
         Usuario aluno = buscarAlunoAtivo(username);
@@ -187,6 +198,29 @@ public class AlunoOfertaService {
         if (alunoOferta.getPlano() == null) {
             throw new IllegalStateException("Não há plano de trabalho associado a esta oferta.");
         }
+    }
+
+    private PlanoTrabalho buscarPlanoObrigatorio(AlunoOferta alunoOferta) {
+        if (alunoOferta.getPlano() == null) {
+            throw new EntityNotFoundException("Plano não encontrado.");
+        }
+        return alunoOferta.getPlano();
+    }
+
+    private RelatorioEstagio buscarRelatorioObrigatorio(AlunoOferta alunoOferta) {
+        return relatorioEstagioRepositorio.findByAlunoOferta(alunoOferta)
+                .orElseThrow(() -> new EntityNotFoundException("Relatório não encontrado."));
+    }
+
+    private DocumentacaoDocencia buscarDocumentacaoObrigatoria(AlunoOferta alunoOferta) {
+        if (alunoOferta.getDocumentacao() == null) {
+            throw new EntityNotFoundException("Documentação não encontrada.");
+        }
+        return alunoOferta.getDocumentacao();
+    }
+
+    private String normalizarTipoArquivo(String tipo) {
+        return tipo == null ? "" : tipo.trim().toLowerCase();
     }
 
     private void registrarLog(

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
-<head th:replace="~{layout/base :: head('Aprovar Relatório')}"></head>
+<head th:replace="~{layout/base :: head(#{professor.report.conclude.title})}"></head>
 <body>
 
 <nav th:replace="~{layout/base :: navbar}"></nav>
@@ -9,43 +9,86 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h2 class="text-secondary border-bottom pb-2">Aprovar Relatório Final — Professor Responsável</h2>
-            <p class="mb-1"><strong>Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
-            <p class="mb-1"><strong>Oferta:</strong> <span th:text="${alunoOferta.oferta.nome}"></span></p>
-            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-secondary" th:text="${alunoOferta.status}"></span></p>
+            <h2 class="text-secondary border-bottom pb-2" th:text="#{professor.report.conclude.title}">Aprovar Relatório Final — Professor Responsável</h2>
+            <p class="mb-1"><strong th:text="#{professor.student} + ':'">Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
+            <p class="mb-1"><strong th:text="#{professor.offer} + ':'">Oferta:</strong> <span th:text="${alunoOferta.oferta.nome}"></span></p>
+            <p class="mb-0"><strong th:text="#{professor.status} + ':'">Status:</strong> <span class="badge bg-secondary" th:text="#{|statusAluno.${alunoOferta.status}|}"></span></p>
         </div>
     </div>
 
     <div th:if="${alunoOferta.plano != null}" class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white fw-bold">Dados do Plano</div>
+        <div class="card-header bg-primary text-white fw-bold" th:text="#{professor.plan.data}">Dados do Plano</div>
         <div class="card-body">
-            <p class="mb-1"><strong>Código:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
-            <p class="mb-1"><strong>Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
-            <p class="mb-0"><strong>Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
+            <p class="mb-1"><strong th:text="#{student.plan.codigoDisciplina} + ':'">Código:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
+            <p class="mb-1"><strong th:text="#{student.plan.nomeDisciplina} + ':'">Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
+            <p class="mb-2"><strong th:text="#{student.plan.cursoDisciplina} + ':'">Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
+            <div class="d-flex gap-2 flex-wrap">
+                <a class="btn btn-outline-primary btn-sm"
+                   th:href="@{/arquivos/plano/{id}(id=${alunoOferta.id})}"
+                   target="_blank" rel="noopener"
+                   th:text="#{professor.plan.viewPdf}">
+                    Ver PDF do plano
+                </a>
+                <a class="btn btn-outline-primary btn-sm"
+                   th:if="${relatorio != null}"
+                   th:href="@{/arquivos/relatorio/{id}(id=${alunoOferta.id})}"
+                   target="_blank" rel="noopener"
+                   th:text="#{professor.report.viewPdf}">
+                    Ver PDF do relatório
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-light fw-bold" th:text="#{professor.grades.current}">Frequência e Nota já informadas</div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <strong th:text="#{professor.frequency.student}">Frequência do aluno</strong>
+                    <div th:text="${relatorio != null && relatorio.indicadorFrequencia != null ? relatorio.indicadorFrequencia + '%' : #messages.msg('professor.notDefined')}"></div>
+                </div>
+                <div class="col-md-4">
+                    <strong th:text="#{professor.frequency.supervisor}">Frequência sugerida pelo supervisor</strong>
+                    <div th:text="${relatorio != null && relatorio.frequenciaSupervisor != null ? #numbers.formatDecimal(relatorio.frequenciaSupervisor, 1, 2) + '%' : #messages.msg('professor.notDefined')}"></div>
+                </div>
+                <div class="col-md-4">
+                    <strong th:text="#{professor.frequency.finalCurrent}">Frequência final atual</strong>
+                    <div th:text="${relatorio != null && relatorio.frequenciaResponsavel != null ? #numbers.formatDecimal(relatorio.frequenciaResponsavel, 1, 2) + '%' : #messages.msg('professor.notDefined')}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{professor.grade.supervisor}">Nota sugerida pelo supervisor</strong>
+                    <div th:text="${relatorio != null && relatorio.sugestaoNotaSupervisor != null ? relatorio.sugestaoNotaSupervisor : #messages.msg('professor.notDefined')}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong th:text="#{professor.grade.finalCurrent}">Nota final atual</strong>
+                    <div th:text="${relatorio != null && relatorio.notaResponsavel != null ? relatorio.notaResponsavel : #messages.msg('professor.notDefined')}"></div>
+                </div>
+            </div>
         </div>
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white fw-bold">Parecer do Responsável</div>
+        <div class="card-header bg-dark text-white fw-bold" th:text="#{professor.responsibleOpinion}">Parecer do Responsável</div>
         <div class="card-body">
             <form th:action="@{/professor/{id}/concluir-relatorio(id=${alunoOferta.id})}"
                   th:object="${form}"
                   method="post">
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Parecer *</label>
+                    <label class="form-label fw-bold" th:text="#{professor.opinion.required}">Parecer *</label>
                     <textarea th:field="*{parecer}" class="form-control" rows="5" required></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Frequência (%) *</label>
+                    <label class="form-label fw-bold" th:text="#{professor.frequency.label}">Frequência (%) *</label>
                     <input type="number" th:field="*{frequencia}" class="form-control" min="0" max="100" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Nota *</label>
+                    <label class="form-label fw-bold" th:text="#{professor.grade.label}">Nota *</label>
                     <select th:field="*{sugestaoNota}" class="form-select" required>
-                        <option value="">Selecione</option>
+                        <option value="" th:text="#{professor.select}">Selecione</option>
                         <option value="A">A</option>
                         <option value="B">B</option>
                         <option value="C">C</option>
@@ -55,8 +98,8 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">Aprovar Relatório</button>
-                    <a href="/professor" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success" th:text="#{professor.report.approve}">Aprovar Relatório</button>
+                    <a href="/professor" class="btn btn-secondary" th:text="#{user.cancel}">Cancelar</a>
                 </div>
 
             </form>

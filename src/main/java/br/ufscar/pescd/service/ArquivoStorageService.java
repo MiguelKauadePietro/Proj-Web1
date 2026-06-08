@@ -1,9 +1,11 @@
 package br.ufscar.pescd.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.Normalizer;
 import java.time.LocalDateTime;
@@ -55,6 +57,26 @@ public class ArquivoStorageService {
         if (arquivo.getSize() > TAMANHO_MAXIMO_BYTES) {
             throw new IllegalArgumentException("O arquivo PDF deve ter no máximo 5MB.");
         }
+    }
+
+    public Path carregarArquivo(String arquivoPath) {
+        if (arquivoPath == null || arquivoPath.isBlank()) {
+            throw new EntityNotFoundException("Arquivo não disponível.");
+        }
+
+        Path caminho = Paths.get(arquivoPath).normalize();
+        Path raizNormalizada = raizStorage.toAbsolutePath().normalize();
+        Path caminhoAbsoluto = caminho.toAbsolutePath().normalize();
+
+        if (!caminhoAbsoluto.startsWith(raizNormalizada)) {
+            throw new EntityNotFoundException("Arquivo inválido.");
+        }
+
+        if (!Files.exists(caminhoAbsoluto) || !Files.isRegularFile(caminhoAbsoluto)) {
+            throw new EntityNotFoundException("O arquivo solicitado não foi encontrado no servidor.");
+        }
+
+        return caminhoAbsoluto;
     }
 
     private String sanitizarNome(String nomeArquivo) {

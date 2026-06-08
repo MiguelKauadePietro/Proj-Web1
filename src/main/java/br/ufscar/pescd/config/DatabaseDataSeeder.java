@@ -32,6 +32,8 @@ public class DatabaseDataSeeder implements CommandLineRunner {
     private static final String OFERTA_CONCLUIDA_NOME = "Estágio Docente – Computação 2024/2";
     private static final String OFERTA_AGUARDANDO_NOME = "Estágio Docente – Computação 2024/1";
     private static final String OFERTA_ATRASADA_NOME = "Estágio Docente – Computação 2023/2";
+    private static final String PDF_PLANO_PEDRO =
+            "uploads/planos/20260606185753-40ef7be9-18c3-4309-abc3-1e259d6977e4-WEB1_-_Estruturacao_AA1.pdf";
 
     private final UsuarioRepositorio usuarioRepositorio;
     private final OfertaRepositorio ofertaRepositorio;
@@ -234,14 +236,17 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         alunoOferta.setOferta(oferta);
         alunoOferta.setStatus(status);
 
-        if (status == StatusAluno.PLANO_APROVADO) {
-            alunoOferta.setPlano(garantirPlanoMinimo(alunoOferta.getPlano(), professorSupervisor));
+        if (status == StatusAluno.PLANO_ENVIADO || status == StatusAluno.PLANO_APROVADO) {
+            alunoOferta.setPlano(garantirPlanoMinimo(alunoOferta.getPlano(), professorSupervisor, status));
         }
 
         alunoOfertaRepositorio.save(alunoOferta);
     }
 
-    private PlanoTrabalho garantirPlanoMinimo(PlanoTrabalho planoExistente, Usuario professorSupervisor) {
+    private PlanoTrabalho garantirPlanoMinimo(
+            PlanoTrabalho planoExistente,
+            Usuario professorSupervisor,
+            StatusAluno statusAluno) {
         PlanoTrabalho plano = planoExistente != null
                 ? planoExistente
                 : new PlanoTrabalho();
@@ -250,15 +255,22 @@ public class DatabaseDataSeeder implements CommandLineRunner {
         plano.setNomeDisciplina("Estágio Supervisionado em Docência");
         plano.setCursoDisciplina("Computação");
         plano.setProfessorSupervisor(professorSupervisor);
-        plano.setArquivoPath("uploads/planos/plano-seed-pedrorelatorio.pdf");
+        plano.setArquivoPath(PDF_PLANO_PEDRO);
         if (plano.getEnviadoEm() == null) {
             plano.setEnviadoEm(LocalDateTime.now().minusDays(10));
         }
-        plano.setParecer("Plano aprovado para testes.");
-        if (plano.getAprovadoEm() == null) {
-            plano.setAprovadoEm(LocalDateTime.now().minusDays(5));
+
+        if (statusAluno == StatusAluno.PLANO_APROVADO) {
+            plano.setParecer("Plano aprovado para testes.");
+            if (plano.getAprovadoEm() == null) {
+                plano.setAprovadoEm(LocalDateTime.now().minusDays(5));
+            }
+            plano.setAprovadoPor(professorSupervisor);
+        } else {
+            plano.setParecer(null);
+            plano.setAprovadoEm(null);
+            plano.setAprovadoPor(null);
         }
-        plano.setAprovadoPor(professorSupervisor);
 
         return planoTrabalhoRepositorio.save(plano);
     }

@@ -40,9 +40,11 @@ public class AlunoOfertaController {
     public String detalhar(@PathVariable Long alunoOfertaId, Principal principal, Model model) {
         AlunoOferta alunoOferta = alunoOfertaService.buscarDoAluno(alunoOfertaId, principal.getName());
         List<LogStatusAluno> historico = alunoOfertaService.listarHistorico(alunoOfertaId, principal.getName());
+        RelatorioEstagio relatorioEstagio = alunoOfertaService.buscarRelatorio(alunoOfertaId, principal.getName());
 
         model.addAttribute("alunoOferta", alunoOferta);
         model.addAttribute("historicoStatus", historico);
+        model.addAttribute("relatorio", relatorioEstagio);
         return "aluno/ofertas/detalhe";
     }
 

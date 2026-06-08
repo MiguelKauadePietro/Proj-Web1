@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
-<head th:replace="~{layout/base :: head('Encerrar Oferta')}"></head>
+<head th:replace="~{layout/base :: head(#{professor.offer.close.title})}"></head>
 <body>
 
 <nav th:replace="~{layout/base :: navbar}"></nav>
@@ -8,8 +8,8 @@
 <div class="container mt-4 mb-5">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2>Encerrar Oferta</h2>
-        <a href="/professor" class="btn btn-outline-secondary">Voltar</a>
+        <h2 th:text="#{professor.offer.close.title}">Encerrar Oferta</h2>
+        <a href="/professor" class="btn btn-outline-secondary" th:text="#{professor.back}">Voltar</a>
     </div>
 
     <h5 class="text-muted mb-4" th:text="${oferta.nome}"></h5>
@@ -17,35 +17,61 @@
     <div th:if="${mensagemErro}" class="alert alert-danger" th:text="${mensagemErro}"></div>
 
     <div class="card shadow-sm mb-4">
-        <div class="card-header fw-bold">Resumo dos Alunos</div>
+        <div class="card-header fw-bold" th:text="#{professor.students.summary}">Resumo dos Alunos</div>
+        <div class="card-body border-bottom bg-light">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <strong th:text="#{professor.frequency.average}">Média de frequência</strong>
+                    <div th:text="${#lists.isEmpty(alunos) ? #messages.msg('professor.noStudents') : #numbers.formatDecimal(mediaFrequencia, 1, 2) + '%'}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{professor.internship}">Estágio</strong>
+                    <div th:text="${quantidadeEstagio}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{professor.documentation}">Documentação</strong>
+                    <div th:text="${quantidadeDocumentacao}"></div>
+                </div>
+                <div class="col-md-3">
+                    <strong th:text="#{professor.grades}">Notas</strong>
+                    <div th:each="entry : ${quantidadePorNota}" th:text="${entry.key + ': ' + entry.value}"></div>
+                </div>
+            </div>
+        </div>
         <div class="card-body p-0">
-            <table class="table table-striped align-middle mb-0">
+            <div th:if="${#lists.isEmpty(alunos)}" class="p-4 text-center text-muted">
+                <span th:text="#{professor.noStudents}">Sem alunos inscritos nesta oferta.</span>
+            </div>
+
+            <table th:unless="${#lists.isEmpty(alunos)}" class="table table-striped align-middle mb-0">
                 <thead class="table-light">
                 <tr>
-                    <th>Aluno</th>
-                    <th>Tipo de Crédito</th>
-                    <th>Frequência</th>
-                    <th>Nota</th>
+                    <th th:text="#{professor.student}">Aluno</th>
+                    <th th:text="#{professor.creditType}">Tipo de Crédito</th>
+                    <th th:text="#{professor.frequency}">Frequência</th>
+                    <th th:text="#{professor.grade}">Nota</th>
                 </tr>
                 </thead>
                 <tbody>
                 <tr th:each="ao : ${alunos}">
                     <td th:text="${ao.aluno.nomeCompleto}"></td>
                     <td>
-                        <span th:if="${ao.documentacao != null}" class="badge bg-info text-dark">Documentação</span>
-                        <span th:if="${ao.documentacao == null}" class="badge bg-primary">Estágio</span>
+                        <span th:if="${ao.documentacao != null}" class="badge bg-info text-dark" th:text="#{professor.documentation}">Documentação</span>
+                        <span th:if="${ao.documentacao == null}" class="badge bg-primary" th:text="#{professor.internship}">Estágio</span>
                     </td>
                     <td>
                         <span th:if="${ao.documentacao != null}"
-                              th:text="${ao.documentacao.frequencia + '%'}"></span>
+                              th:text="${ao.documentacao.frequencia != null ? #numbers.formatDecimal(ao.documentacao.frequencia, 1, 2) + '%' : #messages.msg('professor.notDefined')}"></span>
                         <span th:if="${ao.documentacao == null and relatorios[ao.id] != null}"
-                              th:text="${relatorios[ao.id].frequenciaResponsavel + '%'}"></span>
+                              th:text="${relatorios[ao.id].frequenciaResponsavel != null ? #numbers.formatDecimal(relatorios[ao.id].frequenciaResponsavel, 1, 2) + '%' : #messages.msg('professor.notDefined')}"></span>
+                        <span th:if="${ao.documentacao == null and relatorios[ao.id] == null}" th:text="#{professor.notDefined}">Ainda não definida</span>
                     </td>
                     <td>
                         <span th:if="${ao.documentacao != null}"
-                              th:text="${ao.documentacao.nota}"></span>
+                              th:text="${ao.documentacao.nota != null ? ao.documentacao.nota : #messages.msg('professor.notDefined')}"></span>
                         <span th:if="${ao.documentacao == null and relatorios[ao.id] != null}"
-                              th:text="${relatorios[ao.id].notaResponsavel}"></span>
+                              th:text="${relatorios[ao.id].notaResponsavel != null ? relatorios[ao.id].notaResponsavel : #messages.msg('professor.notDefined')}"></span>
+                        <span th:if="${ao.documentacao == null and relatorios[ao.id] == null}" th:text="#{professor.notDefined}">Ainda não definida</span>
                     </td>
                 </tr>
                 </tbody>
@@ -54,12 +80,12 @@
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-warning text-dark fw-bold">Confirmar Encerramento</div>
+        <div class="card-header bg-warning text-dark fw-bold" th:text="#{professor.offer.close.confirm}">Confirmar Encerramento</div>
         <div class="card-body">
             <form th:action="@{/professor/ofertas/{id}/encerrar(id=${oferta.id})}" method="post">
                 <div class="mb-3">
                     <label for="licoesAprendidas" class="form-label fw-bold">
-                        Lições Aprendidas *
+                        <span th:text="#{professor.lessonsLearned}">Lições Aprendidas</span> *
                     </label>
 
                     <textarea
@@ -73,8 +99,8 @@
                 <input type="hidden" id="instrucaoEncerramento" name="instrucaoEncerramento" value="Preenchido pelo Professor Responsável" />
 
                 <div class="d-flex justify-content-end gap-2">
-                    <a href="/professor" class="btn btn-light border">Cancelar</a>
-                    <button type="submit" class="btn btn-warning">Encerrar Oferta</button>
+                    <a href="/professor" class="btn btn-light border" th:text="#{user.cancel}">Cancelar</a>
+                    <button type="submit" class="btn btn-warning" th:text="#{professor.offer.close}">Encerrar Oferta</button>
                 </div>
             </form>
         </div>

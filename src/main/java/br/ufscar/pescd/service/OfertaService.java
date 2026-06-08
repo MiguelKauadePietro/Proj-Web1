@@ -3,6 +3,7 @@ package br.ufscar.pescd.service;
 import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.Oferta;
 import br.ufscar.pescd.entity.Usuario;
+import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.entity.enums.StatusAluno;
 import br.ufscar.pescd.entity.enums.StatusOferta;
 import br.ufscar.pescd.repository.AlunoOfertaRepositorio;
@@ -110,6 +111,10 @@ public class OfertaService {
     @Transactional
     public void homologarEncerramento(Long id, Usuario secretario) {
         Oferta oferta = buscarPorId(id);
+
+        if (secretario == null || secretario.getPerfil() != Perfil.SECRETARIO) {
+            throw new IllegalStateException("Apenas um secretário pode homologar o encerramento.");
+        }
 
         if (oferta.getStatus() != StatusOferta.AGUARDANDO_ENCERRAMENTO) {
             throw new IllegalStateException("Apenas ofertas em estado AGUARDANDO_ENCERRAMENTO podem ser finalizadas.");

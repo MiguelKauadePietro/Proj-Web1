@@ -3,6 +3,7 @@ package br.ufscar.pescd.controller;
 import br.ufscar.pescd.entity.AlunoOferta;
 import br.ufscar.pescd.entity.Oferta;
 import br.ufscar.pescd.entity.Usuario;
+import br.ufscar.pescd.entity.enums.Perfil;
 import br.ufscar.pescd.repository.UsuarioRepositorio;
 import br.ufscar.pescd.service.OfertaService;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.security.Principal;
 import java.util.List;
 
 @Controller
@@ -122,12 +124,16 @@ public class OfertaSecretarioController {
     }
 
     @GetMapping("/{id}/homologar")
-    public String homologarEncerramento(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+    public String homologarEncerramento(
+            @PathVariable Long id,
+            Principal principal,
+            RedirectAttributes redirectAttributes) {
         try {
-            Usuario secretarioFake = usuarioRepositorio.findByUsername("secretario")
-                    .orElseGet(() -> usuarioRepositorio.findAll().stream().findFirst().orElse(null));
+            Usuario secretario = usuarioRepositorio.findByUsernameAndAtivoTrue(principal.getName())
+                    .filter(usuario -> usuario.getPerfil() == Perfil.SECRETARIO)
+                    .orElseThrow(() -> new RuntimeException("Secretário não encontrado"));
 
-            ofertaService.homologarEncerramento(id, secretarioFake);
+            ofertaService.homologarEncerramento(id, secretario);
             redirectAttributes.addFlashAttribute("mensagemSucesso", "Oferta homologada e encerrada com sucesso!");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensagemErro", "Erro ao homologar encerramento: " + e.getMessage());

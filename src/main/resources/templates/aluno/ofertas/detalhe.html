@@ -76,6 +76,45 @@
         </div>
     </div>
 
+    <div class="card mb-4">
+        <div class="card-header">Frequência e Nota</div>
+        <div class="card-body">
+            <div th:if="${alunoOferta.documentacao != null}" class="row g-3">
+                <div class="col-md-6">
+                    <strong>Frequência final</strong>
+                    <div th:text="${alunoOferta.documentacao.frequencia != null ? #numbers.formatDecimal(alunoOferta.documentacao.frequencia, 1, 2) + '%' : 'Ainda não definida'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong>Nota final</strong>
+                    <div th:text="${alunoOferta.documentacao.nota != null ? alunoOferta.documentacao.nota : 'Ainda não definida'}"></div>
+                </div>
+            </div>
+
+            <div th:if="${alunoOferta.documentacao == null}" class="row g-3">
+                <div class="col-md-4">
+                    <strong>Frequência informada pelo aluno</strong>
+                    <div th:text="${relatorio != null && relatorio.indicadorFrequencia != null ? relatorio.indicadorFrequencia + '%' : 'Ainda não definida'}"></div>
+                </div>
+                <div class="col-md-4">
+                    <strong>Frequência sugerida pelo supervisor</strong>
+                    <div th:text="${relatorio != null && relatorio.frequenciaSupervisor != null ? #numbers.formatDecimal(relatorio.frequenciaSupervisor, 1, 2) + '%' : 'Ainda não definida'}"></div>
+                </div>
+                <div class="col-md-4">
+                    <strong>Frequência final do responsável</strong>
+                    <div th:text="${relatorio != null && relatorio.frequenciaResponsavel != null ? #numbers.formatDecimal(relatorio.frequenciaResponsavel, 1, 2) + '%' : 'Ainda não definida'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong>Nota sugerida pelo supervisor</strong>
+                    <div th:text="${relatorio != null && relatorio.sugestaoNotaSupervisor != null ? relatorio.sugestaoNotaSupervisor : 'Ainda não definida'}"></div>
+                </div>
+                <div class="col-md-6">
+                    <strong>Nota final do responsável</strong>
+                    <div th:text="${relatorio != null && relatorio.notaResponsavel != null ? relatorio.notaResponsavel : 'Ainda não definida'}"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header" th:text="#{student.offer.history.title}">Histórico de Status</div>
         <div class="card-body p-0">

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="pt-BR">
-<head th:replace="~{layout/base :: head('Aprovar Plano')}"></head>
+<head th:replace="~{layout/base :: head(#{professor.plan.approve.title})}"></head>
 <body>
 
 <nav th:replace="~{layout/base :: navbar}"></nav>
@@ -9,39 +9,45 @@
 
     <div class="card shadow-sm mb-4">
         <div class="card-body">
-            <h2 class="text-secondary border-bottom pb-2">Aprovar Plano de Trabalho</h2>
-            <p class="mb-1"><strong>Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
-            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-secondary" th:text="${alunoOferta.status}"></span></p>
+            <h2 class="text-secondary border-bottom pb-2" th:text="#{professor.plan.approve.title}">Aprovar Plano de Trabalho</h2>
+            <p class="mb-1"><strong th:text="#{professor.student} + ':'">Aluno:</strong> <span th:text="${alunoOferta.aluno.nomeCompleto}"></span></p>
+            <p class="mb-0"><strong th:text="#{professor.status} + ':'">Status:</strong> <span class="badge bg-secondary" th:text="#{|statusAluno.${alunoOferta.status}|}"></span></p>
         </div>
     </div>
 
     <div th:if="${alunoOferta.plano != null}" class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white fw-bold">Dados do Plano</div>
+        <div class="card-header bg-primary text-white fw-bold" th:text="#{professor.plan.data}">Dados do Plano</div>
         <div class="card-body">
-            <p class="mb-1"><strong>Código da Disciplina:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
-            <p class="mb-1"><strong>Nome da Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
-            <p class="mb-1"><strong>Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
-            <p class="mb-0"><strong>Professor Supervisor:</strong>
+            <p class="mb-1"><strong th:text="#{student.plan.codigoDisciplina} + ':'">Código da Disciplina:</strong> <span th:text="${alunoOferta.plano.codigoDisciplina}"></span></p>
+            <p class="mb-1"><strong th:text="#{student.plan.nomeDisciplina} + ':'">Nome da Disciplina:</strong> <span th:text="${alunoOferta.plano.nomeDisciplina}"></span></p>
+            <p class="mb-1"><strong th:text="#{student.plan.cursoDisciplina} + ':'">Curso:</strong> <span th:text="${alunoOferta.plano.cursoDisciplina}"></span></p>
+            <p class="mb-2"><strong th:text="#{student.plan.professorSupervisor} + ':'">Professor Supervisor:</strong>
                 <span th:text="${alunoOferta.plano.professorSupervisor != null ? alunoOferta.plano.professorSupervisor.nomeCompleto : '-'}"></span>
             </p>
+            <a class="btn btn-outline-primary btn-sm"
+               th:href="@{/arquivos/plano/{id}(id=${alunoOferta.id})}"
+               target="_blank" rel="noopener"
+               th:text="#{professor.plan.viewPdf}">
+                Ver PDF do plano
+            </a>
         </div>
     </div>
 
     <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white fw-bold">Parecer</div>
+        <div class="card-header bg-dark text-white fw-bold" th:text="#{professor.opinion}">Parecer</div>
         <div class="card-body">
             <form th:action="@{/professor/{id}/aprovar-plano(id=${alunoOferta.id})}"
                   th:object="${form}"
                   method="post">
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">Parecer *</label>
+                    <label class="form-label fw-bold" th:text="#{professor.opinion.required}">Parecer *</label>
                     <textarea th:field="*{parecer}" class="form-control" rows="5" required></textarea>
                 </div>
 
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">Aprovar Plano</button>
-                    <a href="/professor" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-success" th:text="#{professor.plan.approve}">Aprovar Plano</button>
+                    <a href="/professor" class="btn btn-secondary" th:text="#{user.cancel}">Cancelar</a>
                 </div>
 
             </form>

@@ -26,6 +26,12 @@
                 <li class="nav-item">
                     <a class="nav-link" th:href="@{/ofertas}" th:text="#{nav.offers}">Ofertas</a>
                 </li>
+                <li class="nav-item" sec:authorize="hasRole('ALUNO')">
+                    <a class="nav-link" th:href="@{/aluno/ofertas}" th:text="#{nav.studentOffers}">Minhas Ofertas</a>
+                </li>
+                <li class="nav-item" sec:authorize="hasRole('PROFESSOR')">
+                    <a class="nav-link" th:href="@{/professor}" th:text="#{nav.professorArea}">Área do Professor</a>
+                </li>
                 <li class="nav-item" sec:authorize="hasRole('ADMINISTRADOR')">
                     <a class="nav-link" th:href="@{/admin/usuarios}" th:text="#{nav.users}">Usuários</a>
                 </li>
